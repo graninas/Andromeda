@@ -1,40 +1,88 @@
+{-# LANGUAGE DeriveFunctor #-}
+
 module Andromeda.HAL.Language where
 
-data Script a
-    = Load Scheme a
-    | Validate Condition a
-    | Get (Descriptor -> a)
-    | Init Hardware a
-    | Ask (Parameter -> a)
-    | Run Command a
+import qualified Data.Vector as V
+import qualified Data.Map as M
+import qualified Data.ByteString as BS
+import qualified Data.ByteString.Char8 as BS
+import Control.Monad.Free
 
 
-boosters10Percent :: Script
-boosters10Percent = do
-    
-    load scheme ship1
-    
-    boosters <- get hardware "00:01" -- physical address in scheme
-    validate $ do
-        equal (boosters.name)         b12
-        equal (boosters.manufacturer) b12_manufacturer
+data Hardware
+    = Hardware { _name :: BS.ByteString
+               , _manufacturer :: BS.ByteString }
 
-    controller <- init boosters
-    st <- ask controller status
-    validate $ do
-        equal (st.value) online
-    
-    t <- ask controller temperature
-    validate $ do
-        less    (t.value) 300
-        greater (t.value) 0
-    
-    run command controller start
-    run command controller (power 10)
+type Index = (Int, Int)
+type Address = BS.ByteString
+data Profile
+    = Profile
+    | Scheme { _scheme :: V.Vector (V.Vector Hardware)
+             , _mapping :: M.Map Address Index }
 
-    t <- ask controller temperature
-    validate $ do
-        less    (t.value) 1200
-        greater (t.value) 0
-        
-    run command controller stop
+data Condition = Condition
+data Parameter = Status | Temperature
+data Command = Start | Stop | Power Float
+data Controller = Controller
+
+-- TODO
+data Value = Value
+           | BoolValue Bool
+           | FloatValue Float
+  deriving (Eq, Show)
+
+data Procedure a
+    = LoadProfile Profile a
+    | GetHardware Address (Hardware -> a)
+    | ValidateCondition Condition a
+    | InitController Hardware (Controller -> a)
+    | AskParameter Controller Parameter (Value -> a)
+    | RunCommand Controller Command a
+    | Report String String a
+    | Save Parameter Value a
+    | Wait Float a
+  deriving (Functor)
+
+type Script = Free Procedure
+
+load :: ProfileHint -> Profile -> Script ()
+load ph p = liftF (LoadProfile p ())
+
+get :: HardwareHint -> Address -> Script Hardware
+get hh a = liftF (GetHardware a id)
+
+validate :: Condition -> Script ()
+validate cond = liftF (ValidateCondition cond ())
+
+init :: Hardware -> Script Controller
+init h = liftF (InitController h id)
+
+ask :: Controller -> Parameter -> Script Value
+ask c p = liftF (AskParameter c p id)
+
+command :: Controller -> Command -> Script ()
+command c cmd = liftF (RunCommand c cmd ())
+
+report :: String -> String -> Script ()
+report s1 s2 = liftF (Report s1 s2 ())
+
+wait :: Float -> Script ()
+wait time = liftF (Wait time ())
+
+save :: Parameter -> Value -> Script ()
+save p v = liftF (Save p v ())
+
+data ProfileHint = ProfileHint
+data HardwareHint = HardwareHint
+
+scheme = ProfileHint
+hardware = HardwareHint
+
+status = Status
+temperature = Temperature
+start = Start
+stop = Stop
+power = Power
+
+float = FloatValue
+int = BoolValue

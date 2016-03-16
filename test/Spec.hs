@@ -1,50 +1,70 @@
-module Test where
+{-# LANGUAGE OverloadedStrings #-}
+module Main where
 
-import Andromeda.HAL
+import Control.Monad (when, unless)
+import Prelude hiding (init)
 
-ship1 :: Scheme
+import Andromeda.HAL.Language
+import Andromeda.HAL.Interpreter
+
+ship1 :: Profile
 ship1 = undefined
 
+online = BoolValue True
 
-boosters10Percent :: Script
-boosters10Percent = do
+boostersHeatingUp :: Script ()
+boostersHeatingUp = do
     
     load scheme ship1
-    
     boosters <- get hardware "00:01" -- physical address in scheme
-    validate $ do
-        equal (boosters.name)         b12
-        equal (boosters.manufacturer) b12_manufacturer
 
     controller <- init boosters
     st <- ask controller status
-    validate $ do
-        equal (st.value) online
+    when (st == online) $ do
     
-    t <- ask controller temperature
-    validate $ do
-        less    (t.value) 300
-        greater (t.value) 0
-    
-    run command controller start
-    run command controller (power 10)
-
-    t <- ask controller temperature
-    validate $ do
-        less    (t.value) 1200
-        greater (t.value) 0
+        t <- ask controller temperature
+        report "temperature: " (show t)
         
-    run command controller stop
-    
+        command controller start
+        command controller (power 1.0)
+        t <- ask controller temperature
+        report "temperature: " (show t)
+        
+        command controller stop
+    unless (st == online)
+        $ report "Failed to initialize boosters controller." ""
 
+boostersTemperatureMonitoring :: Script ()
+boostersTemperatureMonitoring = do
+    boosters <- get hardware "00:01"
+    controller <- init boosters
+    monitoring controller
+  where monitoring = do
+    st <- ask controller status
+        when (st == online) $ do
+            t <- ask controller temperature
+
+            -- TODO: this should be async.
+            -- TODO: generic conversion to float depending on parameter type.
+            save temperature (float t)
+            wait 10.0
+            monitoring
+        unless (st == online)
+            $ report "Controller goes offline." ""
+        
+
+        
 initializeEnvironment = undefined
 deinitializeEnvironment = undefined
 run = undefined
-compile = undefined
 
+test1 :: IO ()
 test1 = do
     -- validation, logging, event sourcing, fault tolerance, frp scenario
-    let controlProgram = compile boosters10Percent
+    let controlProgram = compile [
+        boostersHeatingUp,
+        boostersTemperatureMonitoring
+        ]
 
     initializeEnvironment
     run controlProgram

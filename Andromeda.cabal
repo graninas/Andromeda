@@ -15,8 +15,20 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Lib
-  build-depends:       base >= 4.7 && < 5
+  exposed-modules:     Lib,
+                       Andromeda.HAL.Language,
+                       Andromeda.HAL.Interpreter
+                       Andromeda.Model.HAL.Interpreter,
+                       Andromeda.Model.Runtime
+                       
+  build-depends:       base >= 4.7 && < 5,
+                       vector,
+                       containers,
+                       bytestring,
+                       free,
+                       mtl,
+                       transformers
+                       
   default-language:    Haskell2010
 
 executable Andromeda-exe
