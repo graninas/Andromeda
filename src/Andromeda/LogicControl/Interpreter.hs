@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Andromeda.HAL.Interpreter where
+module Andromeda.Model.HAL.Interpreter where
 
 -- Generalized interpreter which uses IoC container to get actions needed.
 
