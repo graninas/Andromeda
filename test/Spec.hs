@@ -5,46 +5,59 @@ import Control.Monad (when, unless)
 import Prelude hiding (init)
 
 import Andromeda.LogicControl.Language
+import Andromeda.Environment.Language
 
-ship1 :: Profile
-ship1 = undefined
+shipScheme :: Scheme
+shipScheme = undefined
 
-online = BoolValue True
+online = (boolValue True ==)
+stop = undefined
+start = undefined
+power = undefined
 
+sendData :: Data -> Script ()
+sendData = sendTo [database, reporter]
+sendData :: String -> Script ()
+sendReport = sendTo [reporter] . info
+
+-- TODO
+temperature = undefined
+
+-- We see a lot of boilerplate with Controller. Can we move it to background? Reader monad? 'with controller $ do'
 boostersHeatingUp :: Controller -> Script ()
 boostersHeatingUp controller = do
     st <- ask controller status
-    when (st == online) $ do
+    when (online st) $ do
     
-        t <- ask controller temperature
-        report "temperature: " (show t)
-        
+        -- this is a bit verbose. too many operations. Can we bind temperature read to receiver slot? (Reactive)
+        t <- read controller temperature
+        sendData t
+
         -- heating up
-        command controller start
-        command controller (power 1.0)
-        t <- ask controller temperature
-        report "temperature: " (show t)
+        run controller start
+        run controller (power 1.0)
+        
+        ask controller temperature
+            >>= sendData
+        
         command controller stop
         
-    unless (st == online)
-        $ report "Failed to initialize boosters controller." ""
+    unless (online st)
+        $ sendReport "Boosters controller is offline."
 
-boostersTest :: Script ()
+boostersTest :: ControlProgram ()
 boostersTest = do
-    load scheme ship1
-    boosters <- get hardware "00:01" -- logical address in scheme
-    controller <- init boosters
-    boostersHeatingUp controller
-    deinit controller
+    load shipScheme
+    log "Ship scheme is loaded.
+    with (hardware "00:01") -- With multiple devices? Hardware returns [Controller]?
+        $ \controller -> eval once $ boostersHeatingUp controller
+    log "Boosters test done."
 
 
 boostersMonitoring controller = do
     st <- ask controller status
     when (st == online) $ do
-    -- TODO: what if controller goes offline here?
         t <- ask controller temperature
-        -- TODO: this should be async.
-        -- TODO: generic conversion to float depending on parameter type.
         save temperature (float t)
     unless (st == online)
         $ report "Controller goes offline." ""
@@ -53,10 +66,8 @@ boostersMonitoringTest :: Script ()
 boostersMonitoringTest = do
     boosters <- get hardware "00:01"
     controller <- init boosters
-    
-    periodic 10.0 $ boostersMonitoring controller
+    eval (times 5 10.0) $ boostersMonitoring controller
     wait 105.0
-    
     deinit controller
 
 

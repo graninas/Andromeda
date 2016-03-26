@@ -1,11 +1,14 @@
-module Hardware.Scheme where
+module Andromeda.System.Language where
 
 import qualified Data.Vector as V
 import qualified Data.Map as M
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BS
 
-import Hardware.Descriptor
+data Descriptor
+    = Descriptor { _hardwareGuid :: BS.ByteString
+                 , _hardwareName :: BS.ByteString
+                 , _hardwareManufacturer :: BS.ByteString }
 
 type Index = (Int, Int)
 
