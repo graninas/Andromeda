@@ -36,11 +36,10 @@ boostersHeatingUp controller = do
         -- heating up
         run controller start
         run controller (power 1.0)
-        
+        wait 10.0
+        command controller stop
         ask controller temperature
             >>= sendData
-        
-        command controller stop
         
     unless (online st)
         $ sendReport "Boosters controller is offline."
