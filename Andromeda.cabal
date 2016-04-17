@@ -16,10 +16,10 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   exposed-modules:     Lib,
-                       Andromeda.HAL.Language,
-                       Andromeda.HAL.Interpreter
-                       Andromeda.Model.HAL.Interpreter,
-                       Andromeda.Model.Runtime
+                       Andromeda.Hardware.Language,
+                       Andromeda.Common.Value,
+                       Andromeda.System.Language,
+                       Andromeda.LogicControl.Language
                        
   build-depends:       base >= 4.7 && < 5,
                        vector,
@@ -43,7 +43,13 @@ test-suite Andromeda-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             Spec.hs
-  build-depends:       base
+  build-depends:       base >= 4.7 && < 5,
+                       vector,
+                       containers,
+                       bytestring,
+                       free,
+                       mtl,
+                       transformers
                      , Andromeda
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010

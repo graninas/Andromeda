@@ -1,33 +1,24 @@
 module Andromeda.Hardware.Language where
 
-import Andromeda.System.Language
+import Andromeda.Common.Value
+
+data Controller = Controller String
+  deriving (Show, Read, Eq)
 
 data Property
-    = InternalTime
-    | Property
+    = Time
     | Status
-    
-data Reading = Reading Timestamp Type Value 
+  deriving (Show, Read, Eq)
 
-data Data = Readings [Reading]
-          | Info String
-          
+data Parameter = Temperature | Pressure
+  deriving (Show, Read, Eq)
 
-data Parameter = Parameter -- lens to access Data!
+data Command = Command String (Maybe Value)
+  deriving (Show, Read, Eq)
+  
+  
+  
+temperature = Temperature
+pressure = Pressure
+status = Status
 
-data Value = BoolValue Bool
-           | StringValue String
-
-data Command = Command
-
-data HardwareHint = Hardware Address
-
-boolValue :: Bool -> Value
-boolValue = BoolValue
-
-stringValue :: String -> Value
-stringValue = StringValue
-
-readings = Readings
-
-info = Info

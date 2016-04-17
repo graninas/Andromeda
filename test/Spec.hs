@@ -1,92 +1,66 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 
-import Control.Monad (when, unless)
-import Prelude hiding (init)
-
 import Andromeda.LogicControl.Language
-import Andromeda.Environment.Language
+import Andromeda.Hardware.Language
+import Andromeda.Common.Value
 
-shipScheme :: Scheme
-shipScheme = undefined
+import Prelude hiding (read)
+import Control.Monad.Free
 
-online = (boolValue True ==)
-stop = undefined
-start = undefined
-power = undefined
+database :: Value -> IO ()
+database v = print $ "Sended to DB: " ++ show v
 
-sendData :: Data -> Script ()
-sendData = sendTo [database, reporter]
-sendData :: String -> Script ()
-sendReport = sendTo [reporter] . info
+reporter :: Value -> IO ()
+reporter v = print $ "Reported: " ++ show v
 
--- TODO
-temperature = undefined
+saveData :: Value -> Script ()
+saveData = sendTo database
+sendReport :: String -> Script ()
+sendReport s = sendTo reporter (stringValue s)
+sendData :: Value -> Script ()
+sendData v = saveData v >> sendReport ("sending: " ++ show v)
 
--- We see a lot of boilerplate with Controller. Can we move it to background? Reader monad? 'with controller $ do'
-boostersHeatingUp :: Controller -> Script ()
-boostersHeatingUp controller = do
-    st <- ask controller status
-    when (online st) $ do
-    
-        -- this is a bit verbose. too many operations. Can we bind temperature read to receiver slot? (Reactive)
-        t <- read controller temperature
-        sendData t
+start   = Command "start" Nothing
+stop    = Command "stop" Nothing
+power f = Command "power" (Just $ floatValue f)
 
-        -- heating up
+heatUp :: Controller -> Script ()
+heatUp controller = do
+        t1 <- read controller temperature
+        sendData t1
         run controller start
         run controller (power 1.0)
-        wait 10.0
-        command controller stop
-        ask controller temperature
-            >>= sendData
-        
-    unless (online st)
-        $ sendReport "Boosters controller is offline."
+        run controller stop
+        t2 <- read controller temperature
+        sendData t2
 
-boostersTest :: ControlProgram ()
-boostersTest = do
-    load shipScheme
-    log "Ship scheme is loaded.
-    with (hardware "00:01") -- With multiple devices? Hardware returns [Controller]?
-        $ \controller -> eval once $ boostersHeatingUp controller
-    log "Boosters test done."
-
-
-boostersMonitoring controller = do
+boostersHeatUp :: Controller -> Script ()
+boostersHeatUp controller = do
     st <- ask controller status
-    when (st == online) $ do
-        t <- ask controller temperature
-        save temperature (float t)
-    unless (st == online)
-        $ report "Controller goes offline." ""
+    if (st == trueValue)
+        then heatUp controller
+        else sendReport "Boosters controller is offline."
 
-boostersMonitoringTest :: Script ()
-boostersMonitoringTest = do
-    boosters <- get hardware "00:01"
-    controller <- init boosters
-    eval (times 5 10.0) $ boostersMonitoring controller
-    wait 105.0
-    deinit controller
-
-
-initialize = undefined
-deinitialize = undefined
-run = undefined
-simulator = undefined
-
-
-
-
-test1 :: IO ()
-test1 = do
-    -- validation, logging, event sourcing, fault tolerance, frp scenario
-
-    let controlProgram = compile boostersMonitoringTest
-    
-    bracket (initialize simulator)
-            (deinitialize)
-            (\env -> run env controlProgram)
+interpreter :: Script () -> IO ()
+interpreter (Pure a) = return a
+interpreter (Free proc) = case proc of
+    Ask c p next -> do
+        print $ "Asked: " ++ show c ++ ", " ++ show p
+        interpreter (next trueValue)
+    Read c p next -> do
+        print $ "Read: " ++ show c ++ ", " ++ show p
+        interpreter (next $ floatValue 100.0)
+    Run c cmd next -> do
+        print $ "Run: " ++ show c ++ ", " ++ show cmd
+        interpreter next
+    SendTo rec val next -> do
+        print $ "SendTo val: " ++ show val
+        rec val
+        interpreter next
 
 main :: IO ()
-main = putStrLn "Test suite not yet implemented"
+main = do
+    let controller = Controller "abc"
+    interpreter $ boostersHeatUp controller
+

@@ -3,33 +3,32 @@
 module Andromeda.LogicControl.Language where
 
 import Andromeda.Hardware.Language
+import Andromeda.Common.Value
 import Control.Monad.Free
+import Prelude hiding (read)
 
--- TODO: this is wrong. Action DSL shouldn't depend on receiver from environment.
-data Receiver = Database | Reporter
+type Receiver = Value -> IO ()
 
-data Action a
+data Procedure a
     = Ask Controller Property (Value -> a)
-    | Read Controller Parameter (Data -> a)
+    | Read Controller Parameter (Value -> a)
     | Run Controller Command a
-    | SendTo [Receiver] Data a -- Should it be async? Or we can use explicit annotation of it to be async?
+    | SendTo Receiver Value a
   deriving (Functor)
 
-type Script a = Free Action a
+type Script a = Free Procedure a
 
 ask :: Controller -> Property -> Script Value
 ask c p = liftF (Ask c p id)
 
-read :: Controller -> Parameter -> Script Data
+read :: Controller -> Parameter -> Script Value
 read c p = liftF (Read c p id)
 
-run :: Controller -> Command -> Script Value
+run :: Controller -> Command -> Script ()
 run c cmd = liftF (Run c cmd ())
 
-sendTo :: [Receiver] -> Data -> Script ()
-sendTo rs d = liftF (SendTo rs d ())
+sendTo :: Receiver -> Value -> Script ()
+sendTo r v = liftF (SendTo r v ())
 
-reporter = Reporter
-database = Database
 
 
