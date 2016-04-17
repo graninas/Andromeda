@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes #-}
 module Main where
 
 --import qualified BoostersHeatUpTest as T1
@@ -7,18 +7,27 @@ import Andromeda.LogicControl.Language
 import Andromeda.Hardware.Language
 import Andromeda.Common.Value
 
+import Common
+
 import Prelude hiding (read)
 import Control.Monad.Free
+import Unsafe.Coerce
 
 fromKelvin :: Measurment Kelvin -> Float
 fromKelvin (Measurment (FloatValue v)) = v
 fromCelsius :: Measurment Celsius -> Float
 fromCelsius (Measurment (FloatValue v)) = v
+fromPascal :: Measurment Pascal -> Float
+fromPascal (Measurment (FloatValue v)) = v
 
-possible :: Controller -> Script Kelvin Float
-possible controller = do
+readTemperature :: Controller -> Script Kelvin Float
+readTemperature controller = do
     t <- read controller temperature
     return $ fromKelvin t
+    
+readPressure controller = do
+    t <- read controller pressure
+    return $ fromPascal t
 
 {-
 impossible :: Controller -> Script Celsius Float
@@ -27,8 +36,21 @@ impossible controller = do
     return $ fromCelsius t
 -}
 
+
+--unwrap :: Procedure tag a -> Procedure () a
+unwrap p = unsafeCoerce p
+
+--sendTemperature :: Controller -> Script () ()
+sendTemperature controller = do
+    t <- unwrap $ readTemperature controller
+    sendData (floatValue t)
+    p <- unwrap $ readPressure controller
+    sendData (floatValue p)
+
 main :: IO ()
 main = do
     print "Testing..."
     --T1.test
+    interpreter (sendTemperature boostersController)
+    
 

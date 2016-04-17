@@ -18,18 +18,16 @@ data Procedure tag a
 
 type Script tag a = Free (Procedure tag) a
 
-data None
-
-ask :: Controller -> Property -> Script None Value
+ask :: Controller -> Property -> Script a Value
 ask c p = liftF (Ask c p id)
 
 read :: Controller -> Parameter tag -> Script tag (Measurment tag)
 read c p = liftF (Read c p id)
 
-run :: Controller -> Command -> Script None ()
+run :: Controller -> Command -> Script a ()
 run c cmd = liftF (Run c cmd ())
 
-sendTo :: Receiver -> Value -> Script None ()
+sendTo :: Receiver -> Value -> Script a ()
 sendTo r v = liftF (SendTo r v ())
 
 

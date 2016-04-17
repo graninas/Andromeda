@@ -21,8 +21,13 @@ data Celsius
 
 data Command = Command String (Maybe Value)
   deriving (Show, Read, Eq)
-  
-  
+
+toKelvin :: Float -> Measurment Kelvin
+toKelvin v = Measurment (floatValue v)
+
+toCelsius :: Float -> Measurment Celsius
+toCelsius v = Measurment (floatValue v)
+
 temperature :: Parameter Kelvin
 temperature = Temperature
 
