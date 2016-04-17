@@ -21,11 +21,11 @@ fromPascal (Measurment (FloatValue v)) = v
 
 readTemperature :: Controller -> Script Kelvin Float
 readTemperature controller = do
-    t <- read controller temperature
+    t <- unwrap $ read controller temperature
     return $ fromKelvin t
     
 readPressure controller = do
-    t <- read controller pressure
+    t <- unwrap $ read controller pressure
     return $ fromPascal t
 
 {-
@@ -37,9 +37,9 @@ impossible controller = do
 
 --sendTemperature :: Controller -> Script () ()
 sendTemperature controller = do
-    t <- unwrap $ readTemperature controller
+    t <- readTemperature controller
     sendData (floatValue t)
-    p <- unwrap $ readPressure controller
+    p <- readPressure controller
     sendData (floatValue p)
 
 main :: IO ()
