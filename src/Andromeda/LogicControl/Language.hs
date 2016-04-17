@@ -7,6 +7,8 @@ import Andromeda.Common.Value
 import Control.Monad.Free
 import Prelude hiding (read)
 
+import Unsafe.Coerce
+
 type Receiver = Value -> IO ()
 
 data Procedure tag a
@@ -30,5 +32,6 @@ run c cmd = liftF (Run c cmd ())
 sendTo :: Receiver -> Value -> Script a ()
 sendTo r v = liftF (SendTo r v ())
 
-
+-- Don't know how to do this rihgt in Haskell...
+unwrap p = unsafeCoerce p
 

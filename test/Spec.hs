@@ -11,7 +11,6 @@ import Common
 
 import Prelude hiding (read)
 import Control.Monad.Free
-import Unsafe.Coerce
 
 fromKelvin :: Measurment Kelvin -> Float
 fromKelvin (Measurment (FloatValue v)) = v
@@ -35,10 +34,6 @@ impossible controller = do
     t <- read controller temperature
     return $ fromCelsius t
 -}
-
-
---unwrap :: Procedure tag a -> Procedure () a
-unwrap p = unsafeCoerce p
 
 --sendTemperature :: Controller -> Script () ()
 sendTemperature controller = do
