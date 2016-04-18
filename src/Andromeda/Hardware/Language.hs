@@ -28,8 +28,20 @@ toKelvin v = Measurment (floatValue v)
 toCelsius :: Float -> Measurment Celsius
 toCelsius v = Measurment (floatValue v)
 
+fromKelvin :: Measurment Kelvin -> Float
+fromKelvin (Measurment (FloatValue v)) = v
+fromCelsius :: Measurment Celsius -> Float
+fromCelsius (Measurment (FloatValue v)) = v
+fromPascal :: Measurment Pascal -> Float
+fromPascal (Measurment (FloatValue v)) = v
+
 temperature :: Parameter Kelvin
 temperature = Temperature
+
+temperatureKelvin = temperature
+
+temperatureCelsius :: Parameter Celsius
+temperatureCelsius = Temperature
 
 pressure :: Parameter Pascal
 pressure = Pressure

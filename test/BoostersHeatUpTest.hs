@@ -1,3 +1,4 @@
+{-# LANGUAGE RankNTypes #-}
 module BoostersHeatUpTest where
 
 import Andromeda.LogicControl.Language
@@ -11,15 +12,19 @@ import Control.Monad.Free
 
 heatUp :: Controller -> Script ()
 heatUp controller = do
-        t1 <- read controller temperature
-        sendData t1
+        t1 <- untag $ readTemperature controller
+        sendData (floatValue t1)
         run controller start
         run controller (power 1.0)
         run controller stop
-        t2 <- read controller temperature
-        sendData t2
+        t2 <- untag $ readTemperature controller
+        sendData (floatValue t2)
+        t3 <- untag $ readTemperatureCelsius controller
+        sendData (floatValue t3)
+        t4 <- untag $ readTemperatureKelvin controller
+        sendData (floatValue t4)
 
-boostersHeatUp :: Controller -> Script ()
+--boostersHeatUp :: Monad m => Controller -> m ()
 boostersHeatUp controller = do
     st <- ask controller status
     if (st == trueValue)
