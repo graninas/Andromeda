@@ -19,7 +19,9 @@ library
                        Andromeda.Hardware.Language,
                        Andromeda.Common.Value,
                        Andromeda.System.Language,
-                       Andromeda.LogicControl.Language
+                       Andromeda.LogicControl.Language,
+                       Andromeda.Simulator.Facade,
+                       Andromeda.Simulator.Language
                        
   build-depends:       base >= 4.7 && < 5,
                        vector,
@@ -27,7 +29,10 @@ library
                        bytestring,
                        free,
                        mtl,
-                       transformers
+                       transformers,
+                       arrows,
+                       lens,
+                       Stream
                        
   default-language:    Haskell2010
 
@@ -49,8 +54,11 @@ test-suite Andromeda-test
                        bytestring,
                        free,
                        mtl,
-                       transformers
-                     , Andromeda
+                       transformers,
+                       arrows,
+                       lens,
+                       Stream,
+                       Andromeda
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
 

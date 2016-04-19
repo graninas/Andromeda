@@ -2,7 +2,7 @@ module Andromeda.Hardware.Language where
 
 import Andromeda.Common.Value
 
-data Controller = Controller String
+newtype Controller = Controller String
   deriving (Show, Read, Eq)
 
 data Property
@@ -13,25 +13,29 @@ data Property
 data Parameter tag = Temperature | Pressure
   deriving (Show, Read, Eq)
 
-data Measurment a = Measurment Value
-
+newtype Measurment a = Measurment Value
+  deriving (Show)
+  
 data Pascal
 data Kelvin
 data Celsius
+data Power -- 'Power' units for boosters...
 
 data Command = Command String (Maybe Value)
   deriving (Show, Read, Eq)
 
 toKelvin :: Float -> Measurment Kelvin
 toKelvin v = Measurment (floatValue v)
-
 toCelsius :: Float -> Measurment Celsius
 toCelsius v = Measurment (floatValue v)
-
 fromKelvin :: Measurment Kelvin -> Float
 fromKelvin (Measurment (FloatValue v)) = v
 fromCelsius :: Measurment Celsius -> Float
 fromCelsius (Measurment (FloatValue v)) = v
+
+toPower :: Int -> Measurment Power
+toPower v = Measurment (intValue v)
+
 fromPascal :: Measurment Pascal -> Float
 fromPascal (Measurment (FloatValue v)) = v
 
