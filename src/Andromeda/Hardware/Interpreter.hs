@@ -27,7 +27,9 @@ blankHardware = Hardware M.empty
 interpret iorh (Pure a) = return a
 interpret iorh (Free proc) = case proc of
     Sensor dd hName p next -> do
-        print (typeOf p)
+        print hName
+        print dd
+        print (typeOf p)        
         Hardware sensors <- readIORef iorh
         let newSs = M.insert hName p sensors
         writeIORef iorh (Hardware newSs)
