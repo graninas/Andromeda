@@ -12,8 +12,8 @@ import Data.Data
 boostersDescriptor :: Hdl ()
 boostersDescriptor = do
     sensor aaa_t_25 "zone1-t" temperaturePar
-    untag $ sensor aaa_p_02 "zone1-p" pressurePar
-    untag $ sensor aaa_p_02 "zone2-p" pressurePar
+    sensor aaa_p_02 "zone1-p" pressurePar
+    sensor aaa_p_02 "zone2-p" pressurePar
 
 
 test = do
