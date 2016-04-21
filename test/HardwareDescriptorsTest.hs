@@ -5,9 +5,9 @@ module HardwareDescriptorsTest where
 import Andromeda
 import TestCommon
 
-import Data.IORef
-import Data.Typeable
-import Data.Data
+import qualified Data.Map as M
+import qualified Data.ByteString as BS
+import qualified Data.ByteString.Char8 as BS
 
 boostersDescriptor :: Hdl ()
 boostersDescriptor = do
@@ -19,10 +19,10 @@ boostersDescriptor = do
 test = do
     print "HardwareDescriptorsTest:"
     
-    boosters1 <- makeHardware boostersDescriptor
-    h <- readIORef boosters1
+    boosters1 <- makeHardwareIO boostersDescriptor
+    h <- readHardwareIO boosters1
     print h
     
-    --t <- readParam "zone1-t" :: IO (Measurment Kelvin)
-    --print t
+    let t = readParameter "zone1-t" h 
+    print t
     print "finished."

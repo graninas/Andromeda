@@ -1,13 +1,4 @@
-module Andromeda.Common.Value
-(
-    trueValue,
-    falseValue,
-    boolValue,
-    stringValue,
-    intValue,
-    floatValue,
-    Value(..)
-) where
+module Andromeda.Common.Value where
 
 data Value = BoolValue Bool
            | IntValue Int
@@ -15,6 +6,8 @@ data Value = BoolValue Bool
            | StringValue String           
   deriving (Show, Read, Eq)
 
+class ToValue a where
+  toValue :: a -> Value
 
 trueValue = BoolValue True
 falseValue = BoolValue False
@@ -30,3 +23,6 @@ intValue = IntValue
 
 floatValue :: Float -> Value
 floatValue = FloatValue
+
+
+

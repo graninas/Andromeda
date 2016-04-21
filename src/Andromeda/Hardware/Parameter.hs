@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE RankNTypes #-}
 
 module Andromeda.Hardware.Parameter where
 
@@ -31,8 +32,8 @@ temperatureCelsius = Temperature
 
 
 -- Second attempt (used in HDL)
-data Par = Par TypeRep
+data Par = Par TypeRep Value
   deriving (Show, Eq)
 
-temperaturePar = Par (typeOf (toKelvin 0.0))
-pressurePar    = Par (typeOf (toPascal 0.0))
+temperaturePar = Par (typeOf zeroKelvin) (toValue zeroKelvin)
+pressurePar    = Par (typeOf zeroPascal) (toValue zeroPascal)
