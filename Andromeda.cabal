@@ -29,7 +29,7 @@ library
                        Andromeda.Hardware.Network,
                        Andromeda.Hardware.Interpreter,
                        Andromeda.Calculations,
-                       Andromeda.Calculations.Measurments,
+                       Andromeda.Calculations.Measurements,
                        Andromeda.Calculations.Physics.Units,
                        Andromeda.LogicControl,
                        Andromeda.LogicControl.Language,

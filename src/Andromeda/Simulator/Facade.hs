@@ -11,8 +11,8 @@ import Control.Lens.TH
 import Control.Arrow.Transformer.Automaton
 
 data State = State {
-    _stTemperature :: Measurment Kelvin,
-    _stPower :: Measurment Power
+    _stTemperature :: Measurement Kelvin,
+    _stPower :: Measurement Power
     }
   deriving (Show)
 
@@ -24,8 +24,8 @@ data Simulation = Simulation String (SimulationModel State)
 
 makeLenses ''State
 
-increaseTemperature :: Float -> Measurment Kelvin -> Measurment Kelvin
-increaseTemperature i (Measurment (FloatValue f)) =
-    Measurment (FloatValue (f + i))
+increaseTemperature :: Float -> Measurement Kelvin -> Measurement Kelvin
+increaseTemperature i (Measurement (FloatValue f)) =
+    Measurement (FloatValue (f + i))
 
 simulation = Simulation

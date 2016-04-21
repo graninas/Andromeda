@@ -23,16 +23,16 @@ data Property = Time | Status
 
 data Procedure tag a
     = Ask Controller Property (Value -> a)
-    | Read Controller (Parameter tag) (Measurment tag -> a)
+    | Read Controller (Parameter tag) (Measurement tag -> a)
     -- Special versions of Read to show it works with all tags.
-    | ReadCelsius Controller (Parameter Celsius) (Measurment Celsius -> a)
-    | ReadKelvin Controller  (Parameter Kelvin)  (Measurment Kelvin -> a)
+    | ReadCelsius Controller (Parameter Celsius) (Measurement Celsius -> a)
+    | ReadKelvin Controller  (Parameter Kelvin)  (Measurement Kelvin -> a)
     | Run Controller Command a
     | SendTo Receiver Value a
   deriving (Functor)
 
 type ScriptT tag a = Free (Procedure tag) a
-type ScriptM tag = ScriptT tag (Measurment tag)
+type ScriptM tag = ScriptT tag (Measurement tag)
 type ScriptV a = ScriptT () a
 type Script a = forall tag. ScriptT tag a
 

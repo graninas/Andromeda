@@ -16,13 +16,12 @@ import qualified Data.ByteString.Char8 as BS
 import Control.Monad.Free
 import Data.Typeable
 
-data Typeable tag => HdlItem tag a = Sensor DeviceDescription HardwareName (Parameter tag) a
+data HdlItem a = Sensor DeviceDescription HardwareName Par a
   deriving (Functor)
 
-type HdlT tag a = Free (HdlItem tag) a
-type Hdl a = forall tag. HdlT tag a
+type Hdl a = Free HdlItem a
 
-sensor :: Typeable tag => DeviceDescription -> HardwareName -> Parameter tag -> HdlT tag ()
+sensor :: DeviceDescription -> HardwareName -> Par -> Hdl ()
 sensor dd n p = liftF (Sensor dd n p ())
 
 

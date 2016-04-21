@@ -16,20 +16,20 @@ import qualified Data.Map as M
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BS
 
---data Par = forall tag . Par TypeRep (Measurment tag)
-data Hardware tag = Hardware (M.Map HardwareName (Parameter tag))
-type HardwareObj = forall tag . IORef (Hardware tag)
+newtype Hardware = Hardware (M.Map HardwareName Par)
+    deriving (Show, Eq)
+type HardwareObj = IORef Hardware
 
 blankHardware = Hardware M.empty
 
 
---interpret :: HardwareObj -> Hdl () -> IO ()
+interpret :: HardwareObj -> Hdl () -> IO ()
 interpret iorh (Pure a) = return a
 interpret iorh (Free proc) = case proc of
     Sensor dd hName p next -> do
         print hName
         print dd
-        print (typeOf p)        
+        print p        
         Hardware sensors <- readIORef iorh
         let newSs = M.insert hName p sensors
         writeIORef iorh (Hardware newSs)
