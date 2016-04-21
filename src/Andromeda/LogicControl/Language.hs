@@ -3,11 +3,12 @@
 
 module Andromeda.LogicControl.Language where
 
-import Andromeda.Hardware.Language
-import Andromeda.Common.Value
+import Andromeda.Hardware
+import Andromeda.Common
+import Andromeda.Calculations
+
 import Control.Monad.Free
 import Prelude hiding (read)
-
 import Unsafe.Coerce
 
 type Receiver = Value -> IO ()

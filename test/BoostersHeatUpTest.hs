@@ -1,11 +1,9 @@
 {-# LANGUAGE RankNTypes #-}
 module BoostersHeatUpTest where
 
-import Andromeda.LogicControl.Language
-import Andromeda.Hardware.Language
-import Andromeda.Common.Value
+import Andromeda
 
-import Common
+import TestCommon
 
 import Prelude hiding (read)
 import Control.Monad.Free

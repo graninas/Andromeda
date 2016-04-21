@@ -15,13 +15,22 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Lib,
-                       Andromeda.Hardware.Language,
+  exposed-modules:     Andromeda,
+                       Andromeda.Common,
                        Andromeda.Common.Value,
-                       Andromeda.System.Language,
-                       Andromeda.LogicControl.Language,
+                       Andromeda.Simulator,
                        Andromeda.Simulator.Facade,
-                       Andromeda.Simulator.Language
+                       Andromeda.Simulator.Language,
+                       Andromeda.Hardware,
+                       Andromeda.Hardware.Language,
+                       Andromeda.Calculations,
+                       Andromeda.Calculations.Measurments,
+                       Andromeda.Calculations.Physics.Units,
+                       Andromeda.System.Language,
+                       Andromeda.LogicControl,
+                       Andromeda.LogicControl.Language,
+                       Andromeda.LogicControl.Runtime,
+                       Andromeda.LogicControl.Interpreter
                        
   build-depends:       base >= 4.7 && < 5,
                        vector,
@@ -32,7 +41,8 @@ library
                        transformers,
                        arrows,
                        lens,
-                       Stream
+                       Stream,
+                       stm
                        
   default-language:    Haskell2010
 
@@ -58,6 +68,7 @@ test-suite Andromeda-test
                        arrows,
                        lens,
                        Stream,
+                       stm,
                        Andromeda
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010

@@ -1,8 +1,9 @@
 {-# LANGUAGE TemplateHaskell #-}
 module Andromeda.Simulator.Facade where
 
-import Andromeda.Hardware.Language
-import Andromeda.Common.Value
+import Andromeda.Hardware
+import Andromeda.Common
+import Andromeda.Calculations
 
 import Control.Concurrent
 import Control.Lens
@@ -14,7 +15,7 @@ data State = State {
     _stPower :: Measurment Power
     }
   deriving (Show)
-  
+
 type Iteration = Int
 type Auto = Automaton (->)
 type SimulationModel a = Auto (State, Iteration) a

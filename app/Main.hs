@@ -1,6 +1,6 @@
 module Main where
 
-import Lib
+import Andromeda
 
 main :: IO ()
-main = someFunc
+main = print "Andromeda Control Software, version 0.1"

@@ -1,13 +1,13 @@
 {-# LANGUAGE Arrows #-}
 module SimulatorTest where
 
-import Andromeda.Simulator.Facade
-import Andromeda.Common.Value
-import Andromeda.Hardware.Language
+import Andromeda
+import TestCommon
 
 import Control.Arrow.Transformer.Automaton
 import Control.Arrow
 import Control.Lens
+import Control.Monad
 import qualified Data.Stream as St
 
 {-
@@ -35,7 +35,7 @@ boostersSimulation = simulation "Boosters" boostersModel
 
 initialState = State (toKelvin 0.0) (toPower 0)
 
-run = do
+runSimulation = do
     let inputStream = St.fromList [1..]
     let f = runAutomaton boostersModel
     let out = f (initialState, inputStream)
@@ -43,5 +43,9 @@ run = do
 
 test :: IO ()
 test = do
-    n <- run
-    mapM_ (\t -> print "\n" >> print t) n
+    n <- runSimulation
+    mapM_ print n
+    guard (length n == 3)
+    if (head n ^. stTemperature) == toKelvin 1.0
+        then print "passed."
+        else print "failed."

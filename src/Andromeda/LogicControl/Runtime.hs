@@ -1,4 +1,4 @@
-module Andromeda.Model.Runtime where
+module Andromeda.LogicControl.Runtime where
 
 import Control.Monad
 import Control.Concurrent
