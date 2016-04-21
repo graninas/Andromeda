@@ -1,7 +1,6 @@
 module ParameterTagTest where
 
 import Andromeda
-
 import TestCommon
 
 import Prelude hiding (read)

@@ -1,7 +1,12 @@
 module Andromeda.Hardware (
-    module Andromeda.Hardware.Language
+    module Andromeda.Hardware.HDL,
+    module Andromeda.Hardware.Description,
+    module Andromeda.Hardware.Parameter,
+    module Andromeda.Hardware.Network
+  ) where
 
-    ) where
-
-import Andromeda.Hardware.Language
+import Andromeda.Hardware.HDL
+import Andromeda.Hardware.Network
+import Andromeda.Hardware.Parameter
+import Andromeda.Hardware.Description
 

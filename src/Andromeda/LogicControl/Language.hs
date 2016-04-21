@@ -9,9 +9,17 @@ import Andromeda.Calculations
 
 import Control.Monad.Free
 import Prelude hiding (read)
-import Unsafe.Coerce
 
 type Receiver = Value -> IO ()
+
+newtype Controller = Controller String
+  deriving (Show, Read, Eq)
+
+data Command = Command String (Maybe Value)
+  deriving (Show, Read, Eq)
+
+data Property = Time | Status
+  deriving (Show, Read, Eq)
 
 data Procedure tag a
     = Ask Controller Property (Value -> a)
@@ -46,6 +54,5 @@ run c cmd = liftF (Run c cmd ())
 sendTo :: Receiver -> Value -> Script ()
 sendTo r v = liftF (SendTo r v ())
 
--- Don't know how to do this rihgt in Haskell...
-untag p = unsafeCoerce p
+status = Status
 
