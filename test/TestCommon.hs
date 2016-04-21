@@ -61,24 +61,24 @@ impossible controller = do
 
 -- Mocking interpreter for tests.
 --interpreter :: Script () -> IO ()
-interpreter (Pure a) = return a
-interpreter (Free proc) = case proc of
+scriptInterpreter (Pure a) = return a
+scriptInterpreter (Free proc) = case proc of
     Ask c p next -> do
         print $ "Asked: " ++ show c ++ ", " ++ show p
-        interpreter (next trueValue)
+        scriptInterpreter (next trueValue)
     Read c p next -> do
         print $ "Read: " ++ show c ++ ", " ++ show p
-        interpreter (next $ toKelvin 100.0)
+        scriptInterpreter (next $ toKelvin 100.0)
     ReadCelsius c p next -> do
         print $ "ReadCelsius: " ++ show c ++ ", " ++ show p
-        interpreter (next $ toCelsius 55.0)
+        scriptInterpreter (next $ toCelsius 55.0)
     ReadKelvin c p next -> do
         print $ "ReadKelvin: " ++ show c ++ ", " ++ show p
-        interpreter (next $ toKelvin 3.0)
+        scriptInterpreter (next $ toKelvin 3.0)
     Run c cmd next -> do
         print $ "Run: " ++ show c ++ ", " ++ show cmd
-        interpreter next
+        scriptInterpreter next
     SendTo rec val next -> do
         print $ "SendTo val: " ++ show val
         rec val
-        interpreter next
+        scriptInterpreter next

@@ -1,10 +1,14 @@
+{-# LANGUAGE DeriveDataTypeable #-}
+
 module Andromeda.Hardware.Parameter where
 
 import Andromeda.Calculations
 import Andromeda.Common
 
-data Parameter tag = Temperature | Pressure
-  deriving (Show, Read, Eq)
+import Data.Typeable
+
+data Typeable tag => Parameter tag = Temperature | Pressure
+  deriving (Show, Read, Eq, Typeable)
 
 
 

@@ -12,4 +12,4 @@ sendTemperature controller = do
     p <- untag $ readPressure controller
     sendData (floatValue p)
 
-test = interpreter (sendTemperature boostersController)
+test = scriptInterpreter (sendTemperature boostersController)

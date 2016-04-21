@@ -27,6 +27,7 @@ library
                        Andromeda.Hardware.Description,
                        Andromeda.Hardware.Parameter,
                        Andromeda.Hardware.Network,
+                       Andromeda.Hardware.Interpreter,
                        Andromeda.Calculations,
                        Andromeda.Calculations.Measurments,
                        Andromeda.Calculations.Physics.Units,

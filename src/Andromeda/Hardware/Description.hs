@@ -2,7 +2,6 @@ module Andromeda.Hardware.Description where
 
 import Andromeda.Hardware.Parameter
 
-import qualified Data.Vector as V
 import qualified Data.Map as M
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BS

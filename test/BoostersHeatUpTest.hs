@@ -31,5 +31,5 @@ boostersHeatUp controller = do
 
 test :: IO ()
 test = do
-    interpreter $ boostersHeatUp boostersController
+    scriptInterpreter $ boostersHeatUp boostersController
 
