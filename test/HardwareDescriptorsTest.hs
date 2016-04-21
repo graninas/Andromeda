@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module HardwareDescriptorsTest where
 
@@ -8,6 +9,7 @@ import TestCommon
 import qualified Data.Map as M
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BS
+import Data.Typeable
 
 boostersDescriptor :: Hdl ()
 boostersDescriptor = do
@@ -26,3 +28,19 @@ test = do
     let t = readParameter "zone1-t" h 
     print t
     print "finished."
+    
+    
+
+f x  = case cast x of
+                  Just (x :: Char) -> show x
+                  Nothing -> "unknown"
+                  
+f2 tr = case cast tr of
+    Just (v1 :: Measurement Kelvin) -> print "a"
+    Nothing -> case cast tr of
+        Just (v2 :: Measurement Pascal) -> print "b"
+        Nothing -> case cast tr of
+            Just (v2 :: Measurement Celsius) -> print "c"
+            Nothing -> error "bad cast"
+            
+            

@@ -10,12 +10,9 @@ newtype Measurement a = Measurement Value
   
 instance ToValue (Measurement a) where
   toValue (Measurement v) = v
-  
 
--- TODO: think how to do it
-toMeasurement :: TypeRep -> Value -> Measurement a
-toMeasurement tr v = undefined
 
--- or it:
---toMeasurement :: DataType -> Value -> Measurement a
---toMeasurement dt v = undefined
+
+
+toMeasurementV :: Value -> Measurement a
+toMeasurementV = Measurement

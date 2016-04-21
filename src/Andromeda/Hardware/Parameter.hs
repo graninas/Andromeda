@@ -1,5 +1,7 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Andromeda.Hardware.Parameter where
 
@@ -14,6 +16,38 @@ data Parameter tag = Temperature | Pressure
   deriving (Show, Read, Eq)
 
 data Power -- 'Power' units for boosters...
+
+
+-- Idea: http://stackoverflow.com/questions/28243383/how-can-i-read-the-metadata-of-a-type-at-runtime
+data Admissible a where
+    AdKelvin  :: Admissible Kelvin
+    AdCelsius :: Admissible Celsius
+    AdPascal  :: Admissible Pascal
+
+convertAdmissible :: Admissible a -> a -> Value -> Measurement a
+convertAdmissible AdKelvin  m v = toKelvinV v
+convertAdmissible AdCelsius m v = toCelsiusV v
+convertAdmissible AdPascal  m v = toPascalV v
+
+
+-- TODO: think how to do it
+--toMeasurement :: TypeRep -> Value -> forall a. Measurement a
+toMeasurement (Par v m a) = case cast m of
+    Just (m1 :: Measurement Kelvin) -> toMeasurementV v
+    Nothing -> case cast m of
+        Just (m2 :: Measurement Pascal) -> toMeasurementV v
+        Nothing -> case cast m of
+            Just (m3 :: Measurement Celsius) -> toMeasurementV v
+            Nothing -> error "bad cast"
+
+-- or it:
+--toMeasurement :: DataType -> Value -> Measurement a
+--toMeasurement dt v = undefined
+
+
+
+
+
 
 toPower :: Int -> Measurement Power
 toPower v = Measurement (intValue v)
@@ -32,8 +66,13 @@ temperatureCelsius = Temperature
 
 
 -- Second attempt (used in HDL)
-data Par = Par TypeRep Value
-  deriving (Show, Eq)
+data Par = forall tag. Typeable tag => Par Value (Measurement tag) (Admissible tag)
 
-temperaturePar = Par (typeOf zeroKelvin) (toValue zeroKelvin)
-pressurePar    = Par (typeOf zeroPascal) (toValue zeroPascal)
+instance Show Par where
+  show (Par v t a) = "Par v:" ++ show v ++ " t:" ++ show t
+  
+instance Eq Par where
+  (Par v1 t1 a1) == (Par v2 t2 a2) = v1 == v2
+
+temperaturePar = Par (toValue zeroKelvin) zeroKelvin AdKelvin
+pressurePar    = Par (toValue zeroPascal) zeroPascal AdPascal
