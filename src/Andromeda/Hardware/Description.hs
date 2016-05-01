@@ -10,6 +10,7 @@ type HardwareName = BS.ByteString
 
 data DeviceClass
     = Sensors
+    | Rtus -- Remote terminal units
     | Ventiles
   deriving (Show, Read, Eq)
 

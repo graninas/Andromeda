@@ -13,6 +13,7 @@ import Data.IORef
 import Data.Typeable
 import Data.Data
 import Control.Monad.Free
+import Control.Monad.Trans.Writer
 import qualified Data.Map as M
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BS
@@ -38,5 +39,4 @@ makeHardwareIO hdl = do
 
 -- | Extracts hardware instance from IO container.
 readHardwareIO = readIORef
-
 

@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module HardwareDescriptorsTest where
+module HardwareNetworkTest where
 
 import Andromeda
 import TestCommon
@@ -10,7 +10,7 @@ import qualified Data.ByteString.Char8 as BS
 import Data.Typeable
 
 test = do
-    print "HardwareDescriptorsTest:"
+    print "HardwareNetworkTest:"
     
     hrdwIO <- makeHardwareIO boostersDef
     boostersInstance1 <- readHardwareIO hrdwIO

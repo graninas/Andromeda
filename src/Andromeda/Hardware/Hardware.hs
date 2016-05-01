@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveFunctor #-}
-
 module Andromeda.Hardware.Hardware (
     Hardware,
     blankHardware,

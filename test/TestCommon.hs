@@ -1,4 +1,5 @@
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE OverloadedStrings #-}
 module TestCommon where
 
 import Andromeda
@@ -82,3 +83,33 @@ scriptInterpreter (Free proc) = case proc of
         print $ "SendTo val: " ++ show val
         rec val
         scriptInterpreter next
+
+machineZoneRtu1 :: Hdl ()
+machineZoneRtu1 = rtu aaa_rtu_01 "zone1 main rtu"
+
+machineZoneRtu2 :: Hdl ()
+machineZoneRtu2 = rtu aaa_rtu_01 "zone1 reserve rtu"
+
+intermediateRtu :: Hdl ()
+intermediateRtu = rtu aaa_rtu_01 "intermediate-rtu"
+
+boostersDef :: Hdl ()
+boostersDef = do
+    sensor aaa_t_25 "zone1-t" temperaturePar
+    sensor aaa_t_25 "zone2-t" temperaturePar
+    sensor aaa_p_02 "zone1-p" pressurePar
+    sensor aaa_p_02 "zone2-p" pressurePar
+
+rotaryEngineDef :: Hdl ()
+rotaryEngineDef = do
+    sensor aaa_t_25 "zone1-t" temperaturePar
+    sensor aaa_p_02 "zone1-p" pressurePar
+
+hardwareNetworkDef :: Hndl ()
+hardwareNetworkDef = network "Primary" $ do
+    connectedDevice "00:04" boostersDef     [intermediateRtu, machineZoneRtu1]
+    connectedDevice "12:33" rotaryEngineDef [intermediateRtu, machineZoneRtu1]
+    
+    
+    
+
