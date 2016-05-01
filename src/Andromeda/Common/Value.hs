@@ -3,7 +3,7 @@ module Andromeda.Common.Value where
 data Value = BoolValue Bool
            | IntValue Int
            | FloatValue Float
-           | StringValue String           
+           | StringValue String
   deriving (Show, Read, Eq)
 
 class ToValue a where

@@ -30,17 +30,3 @@ test = do
     print "finished."
     
     
-
-f x  = case cast x of
-                  Just (x :: Char) -> show x
-                  Nothing -> "unknown"
-                  
-f2 tr = case cast tr of
-    Just (v1 :: Measurement Kelvin) -> print "a"
-    Nothing -> case cast tr of
-        Just (v2 :: Measurement Pascal) -> print "b"
-        Nothing -> case cast tr of
-            Just (v2 :: Measurement Celsius) -> print "c"
-            Nothing -> error "bad cast"
-            
-            

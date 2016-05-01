@@ -12,7 +12,7 @@ import Control.Arrow.Transformer.Automaton
 
 data State = State {
     _stTemperature :: Measurement Kelvin,
-    _stPower :: Measurement Power
+    _stPower       :: Measurement Power
     }
   deriving (Show)
 

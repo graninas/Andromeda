@@ -6,10 +6,6 @@ import qualified Data.Map as M
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BS
 
-import Control.Monad.Free
-import Prelude hiding (read)
-import Unsafe.Coerce
-
 type HardwareName = BS.ByteString
 
 data DeviceClass
@@ -17,6 +13,8 @@ data DeviceClass
     | Ventiles
   deriving (Show, Read, Eq)
 
+-- | Pasport of device: class of device, manufacturer, description, serial number and other.
+-- Just info.
 data DeviceDescription = DeviceDescription
     { _deviceClass :: DeviceClass
     , _deviceGuid :: BS.ByteString
