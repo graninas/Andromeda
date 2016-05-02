@@ -6,7 +6,10 @@ import qualified Data.Map as M
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BS
 
+type NetworkName = BS.ByteString
 type HardwareName = BS.ByteString
+type Description = BS.ByteString
+type PhysicalAddress = BS.ByteString
 
 data DeviceClass
     = Sensors

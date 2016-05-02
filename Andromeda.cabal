@@ -29,7 +29,7 @@ library
                        Andromeda.Hardware.Parameter,
                        Andromeda.Hardware.Network,
                        Andromeda.Hardware.Hardware,
-                       Andromeda.Hardware.HardwareIO,
+                       Andromeda.Hardware.Runtime,
                        Andromeda.Calculations,
                        Andromeda.Calculations.Measurements,
                        Andromeda.Calculations.Physics.Units,

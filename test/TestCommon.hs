@@ -84,31 +84,56 @@ scriptInterpreter (Free proc) = case proc of
         rec val
         scriptInterpreter next
 
-machineZoneRtu1 :: Hdl ()
-machineZoneRtu1 = rtu aaa_rtu_01 "zone1 main rtu"
+nozzleTemerature, nozzlePressure, nozzle1T, nozzle2T, nozzle1P, nozzle2P :: DeviceIndexDef
+nozzleTemerature = "nozzle-t"
+nozzlePressure = "nozzle-p"
+nozzle1T = "nozzle1-t"
+nozzle2T = "nozzle2-t"
+nozzle1P = "nozzle1-p"
+nozzle2P = "nozzle2-P"
 
-machineZoneRtu2 :: Hdl ()
-machineZoneRtu2 = rtu aaa_rtu_01 "zone1 reserve rtu"
-
-intermediateRtu :: Hdl ()
-intermediateRtu = rtu aaa_rtu_01 "intermediate-rtu"
+rtuDef :: Hdl ()
+rtuDef = rtu aaa_rtu_01 "rtu"
 
 boostersDef :: Hdl ()
 boostersDef = do
-    sensor aaa_t_25 "zone1-t" temperaturePar
-    sensor aaa_t_25 "zone2-t" temperaturePar
-    sensor aaa_p_02 "zone1-p" pressurePar
-    sensor aaa_p_02 "zone2-p" pressurePar
+    sensor aaa_t_25 nozzle1T temperaturePar
+    sensor aaa_t_25 nozzle2T temperaturePar
+    sensor aaa_p_02 nozzle1P pressurePar
+    sensor aaa_p_02 nozzle2P pressurePar
 
 rotaryEngineDef :: Hdl ()
 rotaryEngineDef = do
-    sensor aaa_t_25 "zone1-t" temperaturePar
-    sensor aaa_p_02 "zone1-p" pressurePar
+    sensor aaa_t_25 nozzleTemerature temperaturePar
+    sensor aaa_p_02 nozzlePressure   pressurePar
 
-hardwareNetworkDef :: Hndl ()
-hardwareNetworkDef = network "Primary" $ do
-    connectedDevice "00:04" boostersDef     [intermediateRtu, machineZoneRtu1]
-    connectedDevice "12:33" rotaryEngineDef [intermediateRtu, machineZoneRtu1]
+{-  00     01     02    03     04
+
+00         R1     B     R2
+01         |      |     |
+02         RTUR1  RTUB  RTUR2 
+03           |____|_____|
+04                IRTU
+05                |
+06                |
+07                |
+08                LC
+-}
+
+networkDef :: Hndl ()
+networkDef = do
+    rtuR1 <- terminalUnit "02:01" rtuDef "rtu1-left rotary engine" 
+    rtuRB <- terminalUnit "02:02" rtuDef "rtub-boosters"
+    rtuR2 <- terminalUnit "02:03" rtuDef "rtu2-right rotary engine"
+    iRtu  <- terminalUnit "04:02" rtuDef "intermediate rtu"
+    rotE1 <- remoteDevice "00:01" rotaryEngineDef "left rotary engine"
+    rotE2 <- remoteDevice "00:03" rotaryEngineDef "right rotary engine"
+    boost <- remoteDevice "00:02" boostersDef "boosters"
+    lc    <- logicControl "08:02" "main logic control"
+    connection [rotE1, rtuR1, iRtu] "conn to left rot e"
+    connection [rotE2, rtuR2, iRtu] "conn to right rot e"
+    connection [boost, rtuRB, iRtu] "conn to boosters"
+    connection [iRtu, lc] "conn to iRtu"
     
     
     
