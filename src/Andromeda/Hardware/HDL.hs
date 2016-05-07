@@ -10,20 +10,20 @@ import qualified Data.Map as M
 import qualified Data.ByteString.Char8 as BS
 import Control.Monad.Free
 
-type DeviceIndexDef = BS.ByteString
+type ComponentIndex = BS.ByteString
 
 -- | Convinient language for defining sensors and other devices.
-data HdlItem a = SensorDef DeviceDescription DeviceIndexDef Par a
-               | RtuDef DeviceDescription DeviceIndexDef a
+data Component a = SensorDef ComponentDef ComponentIndex Par a
+                 | RtuDef    ComponentDef ComponentIndex a
   deriving (Functor)
 
 -- | Free monad Hardware Definition Language.
 -- By this definition a real device in hardware network should be composed.
-type Hdl a = Free HdlItem a
+type Hdl a = Free Component a
 
-sensor :: DeviceDescription -> DeviceIndexDef -> Par -> Hdl ()
-sensor dd idx p = liftF (SensorDef dd idx p ())
+sensor :: ComponentDef -> ComponentIndex -> Par -> Hdl ()
+sensor c idx p = liftF (SensorDef c idx p ())
 
-rtu :: DeviceDescription -> DeviceIndexDef -> Hdl ()
-rtu dd idx = liftF (RtuDef dd idx ())
+rtu :: ComponentDef -> ComponentIndex -> Hdl ()
+rtu c idx = liftF (RtuDef c idx ())
 

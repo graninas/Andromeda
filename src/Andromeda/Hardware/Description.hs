@@ -1,32 +1,27 @@
 module Andromeda.Hardware.Description where
 
-import Andromeda.Hardware.Parameter
-
-import qualified Data.Map as M
-import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BS
 
-type NetworkName = BS.ByteString
 type HardwareName = BS.ByteString
 type Description = BS.ByteString
 type PhysicalAddress = BS.ByteString
 
-data DeviceClass
+data ComponentClass
     = Sensors
-    | Rtus -- Remote terminal units
-    | Ventiles
+    | TerminalUnits
   deriving (Show, Read, Eq)
 
--- | Pasport of device: class of device, manufacturer, description, serial number and other.
+-- | Class, manufacturer, description, serial number.
 -- Just info.
-data DeviceDescription = DeviceDescription
-    { _deviceClass :: DeviceClass
-    , _deviceGuid :: BS.ByteString
-    , _deviceName :: HardwareName
-    , _deviceManufacturer :: BS.ByteString }
+data ComponentDef = ComponentDef
+    { componentClass :: ComponentClass
+    , componentGuid  :: BS.ByteString
+    , componentManufacturer :: BS.ByteString
+    , componentDescritpion  :: HardwareName }
   deriving (Show, Read, Eq)
 
 
-device = DeviceDescription
+component = ComponentDef
 
-
+sensors = Sensors
+terminalUnits = TerminalUnits

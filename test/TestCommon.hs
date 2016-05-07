@@ -84,7 +84,7 @@ scriptInterpreter (Free proc) = case proc of
         rec val
         scriptInterpreter next
 
-nozzleTemerature, nozzlePressure, nozzle1T, nozzle2T, nozzle1P, nozzle2P :: DeviceIndexDef
+nozzleTemerature, nozzlePressure, nozzle1T, nozzle2T, nozzle1P, nozzle2P :: ComponentIndex
 nozzleTemerature = "nozzle-t"
 nozzlePressure = "nozzle-p"
 nozzle1T = "nozzle1-t"

@@ -7,7 +7,7 @@ module Andromeda.Hardware.Runtime where
 import Andromeda.Hardware.Description
 import Andromeda.Hardware.HDL
 import Andromeda.Hardware.Parameter
-import Andromeda.Hardware.Hardware
+import Andromeda.Hardware.Device
 import Andromeda.Calculations
 import Andromeda.Common
 
@@ -20,59 +20,46 @@ import Control.Monad.Free
 import qualified Data.Map as M
 import qualified Data.ByteString.Char8 as BS
 
--- Incapsulated impure instance of Hardware.
-type HardwareIO = IORef Hardware
+-- Incapsulated impure instance of Device.
+type DeviceIO = IORef Device
 
 -- Internal types.
-type HardwareState = State Hardware
-instance HardwareInterpreter HardwareState where
+type DeviceState = State Device
+instance DeviceInterpreter DeviceState where
    onSensorDef _ _ _ = return ()
 
-type HardwareIOState = StateT Hardware IO
-instance HardwareInterpreter HardwareIOState where
-   onSensorDef dd idx p = lift $ putStrLn $ 
-    "Descr: " ++ show dd ++
-    " Idx: "  ++ BS.unpack idx ++
-    " Par: "  ++ show p
-   onRtuDef dd idx = lift $ putStrLn $ 
-    "Descr: " ++ show dd ++
-    " Idx: "  ++ BS.unpack idx
+type DeviceIOState = StateT Device IO
+instance DeviceInterpreter DeviceIOState where
+   onSensorDef c idx p = lift $ putStrLn $
+    "Sensor [" ++
+    show c ++
+    " Idx: " ++ BS.unpack idx ++
+    show p ++ "]"
+   onRtuDef c idx = lift $ putStrLn $
+    "RTU [" ++
+    show c ++
+    " Idx: " ++ BS.unpack idx ++ "]"
 
-{-
-interpret :: Hdl () -> State Hardware ()
-interpret (Pure a)    = return a
-interpret (Free proc) = case proc of
-    SensorDef dd idx p next -> do
-        modify (addSensor (deviceIndex idx) p dd)
-        interpret next
-    RtuDef dd idx -> do
-        modify (addRtu (deviceIndex idx) dd)
-        interpret next
-
--- Internal function making hardware by definiton.
-interpretIO :: HardwareIO -> Hdl () -> IO ()
-interpretIO iorh (Pure a)    = return a
-interpretIO iorh (Free proc) = case proc of
-    Sensor dd idx p next -> do
-        modifyIORef iorh (addSensor (deviceIndex idx) p dd)
-        interpretIO iorh next
-    Rtu dd idx -> do
-        modifyIORef iorh (addRtu (deviceIndex idx) dd)
-        interpretIO iorh next
--}
-
--- | Makes a real instanse of hardware defined by the language.
+-- | Makes a real instanse of device defined by the language.
 -- Operates in the State monad.
-makeHardware :: Hdl () -> Hardware
-makeHardware hdl = execState (interpret hdl) blankHardware
+makeDevice :: Hdl () -> Device
+makeDevice hdl = execState (interpret hdl) blankDevice
 
--- | Makes a real instanse of hardware defined by the language.
+readParameter :: ComponentIndex -> Device -> Maybe (Measurement tag)
+readParameter idx h = do
+    sensor <- getComponent idx h
+    readSensor sensor
+
+-- | Makes a real instanse of device defined by the language.
 -- Operates in the IO monad.
-makeHardwareIO :: Hdl () -> IO HardwareIO
-makeHardwareIO hdl = do
-    hrdw <- execStateT (interpret hdl) blankHardware
+makeDeviceIO :: Hdl () -> IO DeviceIO
+makeDeviceIO hdl = do
+    hrdw <- execStateT (interpret hdl) blankDevice
     newIORef hrdw
 
--- | Extracts hardware instance from IO container.
-readHardwareIO = readIORef
+-- | Extracts device instance from IO container.
+readDeviceIO = readIORef
+
+readParameterIO :: ComponentIndex -> Device -> IO (Maybe (Measurement tag))
+readParameterIO idx h = return $ readParameter idx h
 

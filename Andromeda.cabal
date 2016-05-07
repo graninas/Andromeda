@@ -28,7 +28,7 @@ library
                        Andromeda.Hardware.Description,
                        Andromeda.Hardware.Parameter,
                        Andromeda.Hardware.Network,
-                       Andromeda.Hardware.Hardware,
+                       Andromeda.Hardware.Device,
                        Andromeda.Hardware.Runtime,
                        Andromeda.Calculations,
                        Andromeda.Calculations.Measurements,
@@ -38,7 +38,7 @@ library
                        Andromeda.LogicControl.Runtime,
                        Andromeda.LogicControl.Interpreter,
                        Andromeda.Assets,
-                       Andromeda.Assets.Hardware.Devices
+                       Andromeda.Assets.Hardware.Components
                        
   build-depends:       base >= 4.7 && < 5,
                        vector,

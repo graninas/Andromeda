@@ -11,10 +11,10 @@ import Data.Typeable
 test = do
     print "HardwareDescriptorsTest:"
     
-    hrdwIO <- makeHardwareIO boostersDef
-    boostersInstance1 <- readHardwareIO hrdwIO
+    hrdwIO <- makeDeviceIO boostersDef
+    boostersInstance1 <- readDeviceIO hrdwIO
 
-    let boostersInstance2 = makeHardware boostersDef
+    let boostersInstance2 = makeDevice boostersDef
     if (boostersInstance1 == boostersInstance2)
         then print "SUCCESS"
         else print "FAIL"

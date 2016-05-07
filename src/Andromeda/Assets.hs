@@ -1,5 +1,5 @@
 module Andromeda.Assets (
-    module Andromeda.Assets.Hardware.Devices
+    module Andromeda.Assets.Hardware.Components
   ) where
   
-import Andromeda.Assets.Hardware.Devices
+import Andromeda.Assets.Hardware.Components
