@@ -10,7 +10,7 @@ import Data.Typeable
 
 test = do
     print "HardwareNetworkTest:"
-    
+     
     
     print "finished."
     

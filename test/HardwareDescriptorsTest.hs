@@ -19,8 +19,16 @@ test = do
         then print "SUCCESS"
         else print "FAIL"
     
-    let t = readParameter nozzle1T boostersInstance1
-    print $ (BS.unpack nozzle1T) ++ " measurements: " ++ show t
+    {-let t = readParameter nozzle1T boostersInstance1-}
+    {-print $ (BS.unpack nozzle1T) ++ " measurements: " ++ show t-}
+    
+    {-setParameterIO hrdwIO nozzle1T (toKelvin 101.0)-}
+    {-t1 <- readParameter nozzle1T hrdwIO-}
+    
+    {-setParameterIO hrdwIO nozzle1T (toKelvin 101.0)-}
+    {-t2 <- readParameter nozzle1T hrdwIO-}
+    {-print $ if (toKelvin 101.0 == t2) then "Success" else "Fail"-}
+    
     print "finished."
     
     

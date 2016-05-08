@@ -8,7 +8,6 @@ module Andromeda.Hardware.Parameter where
 import Andromeda.Calculations
 import Andromeda.Common
 
-
 import Data.Typeable
 
 -- First attempt (used in many modules)
@@ -16,7 +15,6 @@ data Parameter tag = Temperature | Pressure
   deriving (Show, Read, Eq)
 
 data Power -- 'Power' units for boosters...
-
 
 -- Idea: http://stackoverflow.com/questions/28243383/how-can-i-read-the-metadata-of-a-type-at-runtime
 data Admissible a where
@@ -76,3 +74,6 @@ instance Eq Par where
 
 temperaturePar = Par (toValue zeroKelvin) zeroKelvin AdKelvin
 pressurePar    = Par (toValue zeroPascal) zeroPascal AdPascal
+
+
+

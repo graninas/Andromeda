@@ -11,11 +11,13 @@ data ComponentClass
     | TerminalUnits
   deriving (Show, Read, Eq)
 
+type Guid = BS.ByteString
+
 -- | Class, manufacturer, description, serial number.
 -- Just info.
 data ComponentDef = ComponentDef
     { componentClass :: ComponentClass
-    , componentGuid  :: BS.ByteString
+    , componentGuid  :: Guid 
     , componentManufacturer :: BS.ByteString
     , componentDescritpion  :: HardwareName }
   deriving (Show, Read, Eq)

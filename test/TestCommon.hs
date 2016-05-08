@@ -92,8 +92,8 @@ nozzle2T = "nozzle2-t"
 nozzle1P = "nozzle1-p"
 nozzle2P = "nozzle2-P"
 
-rtuDef :: Hdl ()
-rtuDef = rtu aaa_rtu_01 "rtu"
+controllerDef :: Hdl ()
+controllerDef = controller aaa_controller_01 "controller"
 
 boostersDef :: Hdl ()
 boostersDef = do
@@ -122,18 +122,18 @@ rotaryEngineDef = do
 
 networkDef :: Hndl ()
 networkDef = do
-    rtuR1 <- terminalUnit "02:01" rtuDef "rtu1-left rotary engine" 
-    rtuRB <- terminalUnit "02:02" rtuDef "rtub-boosters"
-    rtuR2 <- terminalUnit "02:03" rtuDef "rtu2-right rotary engine"
-    iRtu  <- terminalUnit "04:02" rtuDef "intermediate rtu"
+    controllerR1 <- terminalUnit "02:01" controllerDef "controller1-left rotary engine" 
+    controllerRB <- terminalUnit "02:02" controllerDef "controllerb-boosters"
+    controllerR2 <- terminalUnit "02:03" controllerDef "controller2-right rotary engine"
+    iController  <- terminalUnit "04:02" controllerDef "intermediate controller"
     rotE1 <- remoteDevice "00:01" rotaryEngineDef "left rotary engine"
     rotE2 <- remoteDevice "00:03" rotaryEngineDef "right rotary engine"
     boost <- remoteDevice "00:02" boostersDef "boosters"
     lc    <- logicControl "08:02" "main logic control"
-    connection [rotE1, rtuR1, iRtu] "conn to left rot e"
-    connection [rotE2, rtuR2, iRtu] "conn to right rot e"
-    connection [boost, rtuRB, iRtu] "conn to boosters"
-    connection [iRtu, lc] "conn to iRtu"
+    connection [rotE1, controllerR1, iController] "conn to left rot e"
+    connection [rotE2, controllerR2, iController] "conn to right rot e"
+    connection [boost, controllerRB, iController] "conn to boosters"
+    connection [iController, lc] "conn to iController"
     
     
     

@@ -11,6 +11,6 @@ guid3 = "02ecabc3-1a02-481f-8e9a-7b0cc62e38f5"
 
 aaa_p_02   = component sensors       guid1 aaaManufacturer "Pressure sensor AAA-P-02"
 aaa_t_25   = component sensors       guid2 aaaManufacturer "Temperature sensor AAA-T-25"
-aaa_rtu_01 = component terminalUnits guid3 aaaManufacturer "Remote terminal unit AAA-RTU-01"
+aaa_controller_01 = component terminalUnits guid3 aaaManufacturer "Controller AAA-C-01"
 
 

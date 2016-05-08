@@ -14,7 +14,7 @@ type ComponentIndex = BS.ByteString
 
 -- | Convinient language for defining sensors and other devices.
 data Component a = SensorDef ComponentDef ComponentIndex Par a
-                 | RtuDef    ComponentDef ComponentIndex a
+                 | ControllerDef ComponentDef ComponentIndex a
   deriving (Functor)
 
 -- | Free monad Hardware Definition Language.
@@ -24,6 +24,6 @@ type Hdl a = Free Component a
 sensor :: ComponentDef -> ComponentIndex -> Par -> Hdl ()
 sensor c idx p = liftF (SensorDef c idx p ())
 
-rtu :: ComponentDef -> ComponentIndex -> Hdl ()
-rtu c idx = liftF (RtuDef c idx ())
+controller :: ComponentDef -> ComponentIndex -> Hdl ()
+controller c idx = liftF (ControllerDef c idx ())
 
