@@ -36,7 +36,7 @@ instance DeviceInterpreter DeviceIOState where
     " Idx: " ++ BS.unpack idx ++
     show p ++ "]"
    onControllerDef c idx = lift $ putStrLn $
-    "RTU [" ++
+    "Controller [" ++
     show c ++
     " Idx: " ++ BS.unpack idx ++ "]"
 
@@ -50,12 +50,17 @@ readParameter idx h = do
     sensor <- getComponent idx h
     readSensor sensor
 
-setParameterIO :: DeviceIO -> ComponentIndex -> Measurement tag -> IO Bool
-setParameterIO hrdwIO idx p = do
-    h <- readDeviceIO hrdwIO
-    return False
+setParameterIO :: Typeable tag => DeviceIO -> ComponentIndex -> Measurement tag -> IO Bool
+setParameterIO hrdwIO idx m = do
+    d <- readDeviceIO hrdwIO
+    let mbDevComp = do comp <- getComponent idx d
+                       setSensor comp m
+    case mbDevComp of
+        Nothing -> return False
+        _ -> do writeDeviceIO hrdwIO $ updateComponent mbDevComp idx d
+                return True
 
-
+        
 
 -- | Makes a real instanse of device defined by the language.
 -- Operates in the IO monad.
@@ -66,7 +71,10 @@ makeDeviceIO hdl = do
 
 -- | Extracts device instance from IO container.
 readDeviceIO = readIORef
+writeDeviceIO = writeIORef
 
-readParameterIO :: ComponentIndex -> Device -> IO (Maybe (Measurement tag))
-readParameterIO idx h = return $ readParameter idx h
+readParameterIO :: ComponentIndex -> DeviceIO -> IO (Maybe (Measurement tag))
+readParameterIO idx hrdwIO  = do
+    h <- readDeviceIO hrdwIO
+    return $ readParameter idx h
 

@@ -6,7 +6,6 @@ import Andromeda.Calculations
 import Andromeda.Hardware.Parameter
 import Andromeda.Hardware.Description
 
-import qualified Data.Map as M
 import qualified Data.ByteString.Char8 as BS
 import Control.Monad.Free
 

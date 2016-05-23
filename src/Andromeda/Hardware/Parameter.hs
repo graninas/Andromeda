@@ -27,25 +27,25 @@ convertAdmissible AdKelvin  m v = toKelvinV v
 convertAdmissible AdCelsius m v = toCelsiusV v
 convertAdmissible AdPascal  m v = toPascalV v
 
+data Measurementable a where
+   MeasureKelvin :: Measurementable Kelvin
+   MeasureCelsius :: Measurementable Celsius
+   MeasurePascal :: Measurementable Pascal
+
+
 
 -- TODO: think how to do it
 --toMeasurement :: TypeRep -> Value -> forall a. Measurement a
-toMeasurement (Par v m a) = case cast m of
+toMeasurement (Par v m) = case cast m of
     Just (m1 :: Measurement Kelvin) -> toMeasurementV v
     Nothing -> case cast m of
         Just (m2 :: Measurement Pascal) -> toMeasurementV v
         Nothing -> case cast m of
             Just (m3 :: Measurement Celsius) -> toMeasurementV v
             Nothing -> error "bad cast"
-
 -- or it:
 --toMeasurement :: DataType -> Value -> Measurement a
 --toMeasurement dt v = undefined
-
-
-
-
-
 
 toPower :: Int -> Measurement Power
 toPower v = Measurement (intValue v)
@@ -61,19 +61,18 @@ temperatureCelsius :: Parameter Celsius
 temperatureCelsius = Temperature
 
 
-
-
 -- Second attempt (used in HDL)
-data Par = forall tag. Typeable tag => Par Value (Measurement tag) (Admissible tag)
+data Par = forall tag. Typeable tag => Par Value (Measurement tag)
 
 instance Show Par where
-  show (Par v t a) = "Par v:" ++ show v ++ " t:" ++ show t
+  show (Par v t) = "Par v:" ++ show v ++ " t:" ++ show t
   
 instance Eq Par where
-  (Par v1 t1 a1) == (Par v2 t2 a2) = v1 == v2
+  (Par v1 t1) == (Par v2 t2) = v1 == v2
 
-temperaturePar = Par (toValue zeroKelvin) zeroKelvin AdKelvin
-pressurePar    = Par (toValue zeroPascal) zeroPascal AdPascal
+temperaturePar = Par (toValue zeroKelvin) zeroKelvin
+pressurePar    = Par (toValue zeroPascal) zeroPascal
 
-
+toPar :: Typeable tag => Measurement tag -> Par
+toPar m@(Measurement v) = Par v m 
 
