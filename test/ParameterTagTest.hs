@@ -8,8 +8,9 @@ import Control.Monad.Free
 
 sendTemperature controller = do
     t <- readTemperature controller
-    sendData (floatValue t)
+--    sendData (floatValue t)
     p <- untag $ readPressure controller
-    sendData (floatValue p)
+--    sendData (floatValue p)
+    return (t, p)
 
-test = scriptInterpreter (sendTemperature boostersController)
+test = interpretControllerScript (sendTemperature boostersController)

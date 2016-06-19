@@ -9,6 +9,7 @@ import Control.Monad.Free
 
 boostersController = Controller "Boosters"
 
+{-
 database :: Value -> IO ()
 database v = print $ "Sended to DB: " ++ show v
 
@@ -21,6 +22,7 @@ sendReport :: String -> ControllerScript ()
 sendReport s = sendTo reporter (stringValue s)
 sendData :: Value -> ControllerScript ()
 sendData v = saveData v >> sendReport ("sending: " ++ show v)
+-}
 
 start   = Command "start" Nothing
 stop    = Command "stop" Nothing
@@ -45,7 +47,6 @@ readTemperatureKelvin1 :: Controller -> ControllerScriptM Kelvin
 readTemperatureKelvin1 controller = do
     readKelvin controller temperatureKelvin
     
-    
 readPressure :: Controller -> ControllerScriptT Pascal Float
 readPressure controller = do
     t <- read controller pressure
@@ -61,29 +62,31 @@ impossible controller = do
 
 
 -- Mocking interpreter for tests.
---interpreter :: ControllerScript () -> IO ()
-scriptInterpreter (Pure a) = return a
-scriptInterpreter (Free proc) = case proc of
+--interpretControllerScript :: ControllerScript () -> IO ()
+interpretControllerScript (Pure a) = return a
+interpretControllerScript (Free proc) = case proc of
     Ask c p next -> do
         print $ "Asked: " ++ show c ++ ", " ++ show p
-        scriptInterpreter (next trueValue)
+        interpretControllerScript (next trueValue)
     Read c p next -> do
         print $ "Read: " ++ show c ++ ", " ++ show p
-        scriptInterpreter (next $ toKelvin 100.0)
+        interpretControllerScript (next $ toKelvin 100.0)
     ReadCelsius c p next -> do
         print $ "ReadCelsius: " ++ show c ++ ", " ++ show p
-        scriptInterpreter (next $ toCelsius 55.0)
+        interpretControllerScript (next $ toCelsius 55.0)
     ReadKelvin c p next -> do
         print $ "ReadKelvin: " ++ show c ++ ", " ++ show p
-        scriptInterpreter (next $ toKelvin 3.0)
+        interpretControllerScript (next $ toKelvin 3.0)
     Run c cmd next -> do
         print $ "Run: " ++ show c ++ ", " ++ show cmd
-        scriptInterpreter next
+        interpretControllerScript next
+{-
     SendTo rec val next -> do
         print $ "SendTo val: " ++ show val
         rec val
-        scriptInterpreter next
-
+        interpretControllerScript next
+        -}
+        
 nozzleTemerature, nozzlePressure, nozzle1T, nozzle2T, nozzle1P, nozzle2P :: ComponentIndex
 nozzleTemerature = "nozzle-t"
 nozzlePressure = "nozzle-p"
