@@ -3,8 +3,8 @@
 
 module Andromeda.LogicControl.Language.Controller where
 
-import Andromeda.Hardware
 import Andromeda.Common
+import Andromeda.Hardware
 import Andromeda.Calculations
 
 import Control.Monad.Free

@@ -34,6 +34,7 @@ instance Monad eff => Functor (ArrEff eff b) where
         (c, next) <- r b
         return (f c, fmap f next))
 
+
 mArr mf = ArrEff (\b -> do
     c <- mf b
     return (c, mArr mf))

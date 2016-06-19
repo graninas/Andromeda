@@ -15,6 +15,3 @@ type FlowArr b c = ArrEffFree Control b c
 
 evalScriptA :: FlowArr (Script b) b
 evalScriptA = mArr evalScript
-
-evalComputationA :: FlowArr (Computation b) b
-evalComputationA = mArr evalComputation
