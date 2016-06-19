@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE Rank2Types #-}
 
-module Andromeda.LogicControl.Language where
+module Andromeda.LogicControl.Language.Controller where
 
 import Andromeda.Hardware
 import Andromeda.Common
@@ -28,30 +28,32 @@ data Procedure tag a
     | ReadCelsius Controller (Parameter Celsius) (Measurement Celsius -> a)
     | ReadKelvin Controller  (Parameter Kelvin)  (Measurement Kelvin -> a)
     | Run Controller Command a
-    | SendTo Receiver Value a
+    | SendTo Receiver Value a -- TODO: move into another language
   deriving (Functor)
 
-type ScriptT tag a = Free (Procedure tag) a
-type ScriptM tag = ScriptT tag (Measurement tag)
-type ScriptV a = ScriptT () a
-type Script a = forall tag. ScriptT tag a
+type ControllerScriptT tag a = Free (Procedure tag) a
+type ControllerScriptM tag = ControllerScriptT tag (Measurement tag)
+type ControllerScriptV a = ControllerScriptT () a
+type ControllerScript a = forall tag. ControllerScriptT tag a
 
-ask :: Controller -> Property -> Script Value
+ask :: Controller -> Property -> ControllerScript Value
 ask c p = liftF (Ask c p id)
 
-read :: Controller -> Parameter tag -> ScriptM tag
+read :: Controller -> Parameter tag -> ControllerScriptM tag
 read c p = liftF (Read c p id)
 
-readCelsius :: Controller -> Parameter Celsius -> ScriptM Celsius
+readCelsius :: Controller -> Parameter Celsius -> ControllerScriptM Celsius
 readCelsius c p = liftF (ReadCelsius c p id)
 
-readKelvin :: Controller -> Parameter Kelvin -> ScriptM Kelvin
+readKelvin :: Controller -> Parameter Kelvin -> ControllerScriptM Kelvin
 readKelvin c p = liftF (ReadKelvin c p id)
 
-run :: Controller -> Command -> Script ()
+run :: Controller -> Command -> ControllerScript ()
 run c cmd = liftF (Run c cmd ())
+-- Example without liftF:
+--run c cmd = Free (Run c cmd (Pure ()))
 
-sendTo :: Receiver -> Value -> Script ()
+sendTo :: Receiver -> Value -> ControllerScript ()
 sendTo r v = liftF (SendTo r v ())
 
 status = Status

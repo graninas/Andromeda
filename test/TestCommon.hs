@@ -15,38 +15,38 @@ database v = print $ "Sended to DB: " ++ show v
 reporter :: Value -> IO ()
 reporter v = print $ "Reported: " ++ show v
 
-saveData :: Value -> Script ()
+saveData :: Value -> ControllerScript ()
 saveData = sendTo database
-sendReport :: String -> Script ()
+sendReport :: String -> ControllerScript ()
 sendReport s = sendTo reporter (stringValue s)
-sendData :: Value -> Script ()
+sendData :: Value -> ControllerScript ()
 sendData v = saveData v >> sendReport ("sending: " ++ show v)
 
 start   = Command "start" Nothing
 stop    = Command "stop" Nothing
 power f = Command "power" (Just $ floatValue f)
 
-readTemperature :: Controller -> ScriptT Kelvin Float
+readTemperature :: Controller -> ControllerScriptT Kelvin Float
 readTemperature controller = do
     t <- read controller temperature
     return $ fromKelvin t
 
-readTemperatureCelsius :: Controller -> ScriptT Celsius Float
+readTemperatureCelsius :: Controller -> ControllerScriptT Celsius Float
 readTemperatureCelsius controller = do
     t <- readCelsius controller temperatureCelsius
     return $ fromCelsius t
 
-readTemperatureKelvin :: Controller -> ScriptT Kelvin Float
+readTemperatureKelvin :: Controller -> ControllerScriptT Kelvin Float
 readTemperatureKelvin controller = do
     t <- readKelvin controller temperatureKelvin
     return $ fromKelvin t
 
-readTemperatureKelvin1 :: Controller -> ScriptM Kelvin
+readTemperatureKelvin1 :: Controller -> ControllerScriptM Kelvin
 readTemperatureKelvin1 controller = do
     readKelvin controller temperatureKelvin
     
     
-readPressure :: Controller -> ScriptT Pascal Float
+readPressure :: Controller -> ControllerScriptT Pascal Float
 readPressure controller = do
     t <- read controller pressure
     return $ fromPascal t
@@ -61,7 +61,7 @@ impossible controller = do
 
 
 -- Mocking interpreter for tests.
---interpreter :: Script () -> IO ()
+--interpreter :: ControllerScript () -> IO ()
 scriptInterpreter (Pure a) = return a
 scriptInterpreter (Free proc) = case proc of
     Ask c p next -> do

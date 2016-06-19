@@ -8,7 +8,7 @@ import TestCommon
 import Prelude hiding (read)
 import Control.Monad.Free
 
-heatUp :: Controller -> Script ()
+heatUp :: Controller -> ControllerScript ()
 heatUp controller = do
         t1 <- untag $ readTemperature controller
         sendData (floatValue t1)
