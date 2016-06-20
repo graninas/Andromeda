@@ -10,6 +10,8 @@ import Control.Lens
 import Control.Lens.TH
 import Control.Arrow.Transformer.Automaton
 
+-- First try to desing simulator
+{-
 data State = State {
     _stTemperature :: Measurement Kelvin,
     _stPower       :: Measurement Power
@@ -29,3 +31,5 @@ increaseTemperature i (Measurement (FloatValue f)) =
     Measurement (FloatValue (f + i))
 
 simulation = Simulation
+
+-}

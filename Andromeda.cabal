@@ -17,7 +17,9 @@ library
   hs-source-dirs:      src,
                        lib
   exposed-modules:     Control.Arrow.ArrEff,
+                       Control.Service.Remote,
                        Lib,
+                       
                        Andromeda,
                        Andromeda.Common,
                        Andromeda.Common.Value,
@@ -91,8 +93,10 @@ test-suite Andromeda-test
                        HardwareDescriptorsTest,
                        HardwareNetworkTest,
                        ParameterTagTest,
-                       SimulatorTest,
-                       ArrowsTest
+                       ArrowsTest,
+                       
+                       Simulator.InitializationTest,
+                       Simulator.AutomationTest
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
 
