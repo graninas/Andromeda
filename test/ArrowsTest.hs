@@ -1,5 +1,5 @@
 {-# LANGUAGE Arrows #-}
-module LogicControl.Test where
+module ArrowsTest where
 
 import Prelude hiding ((.), id)
 import Control.Category
@@ -8,10 +8,10 @@ import Control.Monad.Free
 
 import Andromeda
 import TestCommon
-import Lib
+
 
 -- This file contains hacks and shortpaths to demonstrate the approach to be designed.
-
+{-
 storeValueA :: FlowArr DbValue ()
 storeValueA = mArr (evalScript . infrastructureScript . storeValue)
 
@@ -39,7 +39,8 @@ monitor = proc _ -> do
     v1 <- calculateSomething -< t1
     storeValueA -< (boostersNozzle1T, t1, v1)
     returnA -< ()
-
+        -}
+test :: IO ()
 test = do
     print "LogicControl.Test:"
 

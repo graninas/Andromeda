@@ -65,9 +65,12 @@ impossible controller = do
 --interpretControllerScript :: ControllerScript () -> IO ()
 interpretControllerScript (Pure a) = return a
 interpretControllerScript (Free proc) = case proc of
-    Ask c p next -> do
-        print $ "Asked: " ++ show c ++ ", " ++ show p
+    Get c p next -> do
+        print $ "Get: " ++ show c ++ ", " ++ show p
         interpretControllerScript (next trueValue)
+    Set c p v next -> do
+        print $ "Set: " ++ show c ++ ", " ++ show p ++ ", " ++ show v
+        interpretControllerScript next
     Read c p next -> do
         print $ "Read: " ++ show c ++ ", " ++ show p
         interpretControllerScript (next $ toKelvin 100.0)

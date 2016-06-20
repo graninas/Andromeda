@@ -27,7 +27,7 @@ heatUp controller = do
 
 --boostersHeatUp :: Monad m => Controller -> m ()
 boostersHeatUp controller = do
-    st <- ask controller status
+    st <- get controller status
     if (st == trueValue)
         then heatUp controller
         else return (0.0, 0.0, 0.0, 0.0) --sendReport "Boosters controller is offline."

@@ -10,17 +10,17 @@ import Andromeda.Calculations
 import Control.Monad.Free
 import Prelude hiding (read)
 
+-- Dummy types, should be designed later
+data Property = Time | Status
+  deriving (Show, Read, Eq)
+data Command = Command String (Maybe Value)
+  deriving (Show, Read, Eq)
 newtype Controller = Controller String
   deriving (Show, Read, Eq)
 
-data Command = Command String (Maybe Value)
-  deriving (Show, Read, Eq)
-
-data Property = Time | Status
-  deriving (Show, Read, Eq)
-
 data Procedure tag a
-    = Ask Controller Property (Value -> a)
+    = Get Controller Property (Value -> a)
+    | Set Controller Property Value a
     | Read Controller (Parameter tag) (Measurement tag -> a)
     | Run Controller Command a
     
@@ -35,8 +35,11 @@ type ControllerScriptM tag = ControllerScriptT tag (Measurement tag)
 type ControllerScriptV a = ControllerScriptT () a
 type ControllerScript a = forall tag. ControllerScriptT tag a
 
-ask :: Controller -> Property -> ControllerScript Value
-ask c p = liftF (Ask c p id)
+get :: Controller -> Property -> ControllerScript Value
+get c p = liftF (Get c p id)
+
+set :: Controller -> Property -> Value -> ControllerScript ()
+set c p v = liftF (Set c p v ())
 
 read :: Controller -> Parameter tag -> ControllerScriptM tag
 read c p = liftF (Read c p id)
