@@ -1,7 +1,7 @@
 module Andromeda.Simulator (
-    module Andromeda.Simulator.Facade,
-    module Andromeda.Simulator.Language
+    module Andromeda.Simulator.Simulation,
+    module Andromeda.Simulator.ValueGenerators
   ) where
 
-import Andromeda.Simulator.Facade
-import Andromeda.Simulator.Language
+import Andromeda.Simulator.Simulation
+import Andromeda.Simulator.ValueGenerators
