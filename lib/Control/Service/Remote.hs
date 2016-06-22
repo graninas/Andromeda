@@ -20,3 +20,6 @@ sendRequest pipe@(request, response) a = do
 
 sendResponse :: Pipe a b -> b -> IO ()
 sendResponse pipe@(_, response) b = putMVar response b
+
+getRequest :: Pipe a b -> IO a
+getRequest pipe@(request, _) = takeMVar request

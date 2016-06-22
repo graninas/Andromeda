@@ -53,8 +53,9 @@ readPressure controller = do
     return $ fromPascal t
 
 {-
---Couldn't match type ‘Kelvin’ with ‘Celsius’
---impossible :: Monad m => Controller -> m Float
+-- Type safety:
+-- Couldn't match type ‘Kelvin’ with ‘Celsius’
+-- impossible :: Monad m => Controller -> m Float
 impossible controller = do
     t <- read controller temperature
     return $ fromCelsius t
@@ -62,7 +63,7 @@ impossible controller = do
 
 
 -- Mocking interpreter for tests.
---interpretControllerScript :: ControllerScript () -> IO ()
+-- interpretControllerScript :: ControllerScript () -> IO ()
 interpretControllerScript (Pure a) = return a
 interpretControllerScript (Free proc) = case proc of
     Get c p next -> do
