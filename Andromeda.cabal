@@ -17,6 +17,7 @@ library
   hs-source-dirs:      src,
                        lib
   exposed-modules:     Control.Arrow.ArrEff,
+                       Control.Arrow.Reactive,
                        Control.Service.Remote,
                        Lib,
                        
@@ -60,7 +61,8 @@ library
                        arrows,
                        lens,
                        Stream,
-                       stm
+                       stm,
+                       clock >= 0.7.2
                        
   default-language:    Haskell2010
 
@@ -94,6 +96,7 @@ test-suite Andromeda-test
                        HardwareNetworkTest,
                        ParameterTagTest,
                        ArrowsTest,
+                       FreeIOArrowsTest,
                        
                        Simulator.InitializationTest,
                        Simulator.AutomationTest

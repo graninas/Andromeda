@@ -5,11 +5,11 @@ import Prelude hiding ((.), id)
 import Control.Category
 import Control.Arrow
 import Control.Monad.Free
+import qualified Control.Monad.Trans.Free as FT
 
 import Andromeda
 import TestCommon
 import Lib
-
 
 -- This file contains hacks and shortpaths to demonstrate the approach to be designed.
 
@@ -29,23 +29,27 @@ calculateSomething = proc k -> do
     v <- integralA 0.01 -< 2.0 * (fromKelvin k) -- Some weird computation
     returnA -< ("something", v / 2.0)
 
+periodicA'' = undefined
 seconds n = n * 1000000
-    
-periodicA :: Int -> FlowArr b c -> FlowArr b c
-periodicA = undefined
 
 monitor :: FlowArr () ()
 monitor = proc _ -> do
-    t1 <- periodicA (seconds 1) valueA -< boostersNozzle1T
+    t1 <- periodicA'' (seconds 1) valueA -< boostersNozzle1T
     v1 <- calculateSomething -< t1
     storeValueA -< (boostersNozzle1T, t1, v1)
     returnA -< ()
-        
+
+interpret' :: ControlProgram a -> IO a
+interpret' (Pure a) = return a
+interpret' (Free (EvalScript (ControllerScript cs) next)) = do
+    v <- interpretControllerScript cs
+    interpret' (next v)
+    
 test :: IO ()
 test = do
     print "LogicControl.Test:"
 
-    
+    --runFreeArr interpret' monitor ()
 
 
 

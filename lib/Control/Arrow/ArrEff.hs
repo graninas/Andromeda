@@ -6,7 +6,8 @@ import Control.Category
 import Control.Arrow
 import Control.Monad.Free
 
-newtype ArrEff eff b c = ArrEff (b -> eff (c, ArrEff eff b c))
+type Prod eff b c = (c, ArrEff eff b c)
+newtype ArrEff eff b c = ArrEff (b -> eff (Prod eff b c))
 
 instance Monad eff => Category (ArrEff eff) where
     id = ArrEff (\b -> return (b, id))
@@ -46,10 +47,10 @@ mConst mf = ArrEff (\_ -> do
 aConst c = arr (const c)
 
 runArrEffList :: Monad m => [c] -> ArrEff m b c -> [b] -> m [c]
-runArrEffList cs (ArrEff f) []     = return cs
-runArrEffList cs (ArrEff f) (b:bs) = do
+runArrEffList accum (ArrEff f) []     = return accum
+runArrEffList accum (ArrEff f) (b:bs) = do
     (c, next) <- f b
-    runArrEffList (c:cs) next bs
+    runArrEffList (c:accum) next bs
 
 runArrEff :: Monad m => ArrEff m b c -> [b] -> m [c]
 runArrEff = runArrEffList []
@@ -82,13 +83,4 @@ runFreeArr interpret ar v = do
     let p = runArrEff1 ar v
     (c, next) <- interpret p -- TODO: what to do with next?
     return c
-    
---------------------- Research stuff -------------------
 
-runArrEvent :: Read b => ArrEff IO b (Bool, c) -> [c] -> IO [c]
-runArrEvent (ArrEff f) cs = do
-    b <- getLine
-    result <- f (read b)
-    case result of
-        ((True, c), next) -> runArrEvent next (c:cs)
-        ((False, c), _)   -> return (c:cs)

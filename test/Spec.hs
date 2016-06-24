@@ -6,6 +6,7 @@ import qualified HardwareDescriptorsTest as T3
 import qualified HardwareNetworkTest as T4
 import qualified ParameterTagTest as T5
 import qualified ArrowsTest as T6
+import qualified FreeIOArrowsTest as T7
 
 import qualified Simulator.AutomationTest as Sim1
 import qualified Simulator.InitializationTest as Sim2
@@ -23,3 +24,5 @@ main = do
 
     Sim1.test
     Sim2.test
+    
+    T7.test
