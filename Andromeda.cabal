@@ -89,6 +89,7 @@ test-suite Andromeda-test
                        lens,
                        Stream,
                        stm,
+                       clock >= 0.7.2,
                        Andromeda
   other-modules:       TestCommon,
                        BoostersHeatUpTest,
@@ -97,6 +98,7 @@ test-suite Andromeda-test
                        ParameterTagTest,
                        ArrowsTest,
                        FreeIOArrowsTest,
+                       ReactiveArrowsTest,
                        
                        Simulator.InitializationTest,
                        Simulator.AutomationTest

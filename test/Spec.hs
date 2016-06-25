@@ -7,6 +7,7 @@ import qualified HardwareNetworkTest as T4
 import qualified ParameterTagTest as T5
 import qualified ArrowsTest as T6
 import qualified FreeIOArrowsTest as T7
+import qualified ReactiveArrowsTest as T8
 
 import qualified Simulator.AutomationTest as Sim1
 import qualified Simulator.InitializationTest as Sim2
@@ -14,7 +15,7 @@ import qualified Simulator.InitializationTest as Sim2
 main :: IO ()
 main = do
     print "Testing..."
-      
+      {-
     T1.test
     T2.test
     T3.test
@@ -26,3 +27,6 @@ main = do
     Sim2.test
     
     T7.test
+    -}
+    T8.test
+    

@@ -36,11 +36,11 @@ calculateSomething = proc k -> do
     v <- integralA 0.01 -< 2.0 * (fromKelvin k) -- Some weird computation
     returnA -< ("something", v / 2.0)
 
-seconds n = n * 1000000
+seconds n = n * 1000000000
 
 monitor :: FlowIOArr () ()
 monitor = proc _ -> do
-    t1 <- periodicA (seconds 1) valueA -< boostersNozzle1T
+    t1 <- periodicA (seconds 10000) valueA -< boostersNozzle1T
     v1 <- calculateSomething -< t1
     storeValueA -< (boostersNozzle1T, t1, v1)
     returnA -< ()
@@ -60,16 +60,17 @@ interpretFT' (Free (EvalScript (InfrastructureScript is) next)) = do
     
 runFreeIOArr interpret ar v = do
     let p = runArrEff1 ar v
-    (c, next) <- interpret p -- TODO: what to do with next?
-    return c
+    interpret p
 
-
+runInfinitely arrow = do
+    (c, next) <- runFreeIOArr interpretFT arrow ()
+    runInfinitely next
     
 test :: IO ()
 test = do
-    print "LogicControl.Test:"
+    print "FreeIOArrowsTest:"
 
-    runFreeIOArr interpretFT monitor ()
+    runInfinitely monitor
 
 
 

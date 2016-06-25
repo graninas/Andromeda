@@ -47,7 +47,7 @@ interpret' (Free (EvalScript (ControllerScript cs) next)) = do
     
 test :: IO ()
 test = do
-    print "LogicControl.Test:"
+    print "ArrowsTest:"
 
     --runFreeArr interpret' monitor ()
 
