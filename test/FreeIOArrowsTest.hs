@@ -25,7 +25,7 @@ storeValueA = mArr (evalScriptFT . infrastructureScript . storeValue)
 
 -- TODO: implement arrows and scripts poperly.
 valueA :: FlowIOArr ValueSource (Measurement Kelvin)
-valueA = undefined
+valueA = arr (const $ toKelvin 1.0)
 
 -- Just a sample of whatever meaningless computation
 integralA :: Float -> FlowIOArr Float Float
@@ -54,12 +54,15 @@ interpretFT' (Pure a) = return a
 interpretFT' (Free (EvalScript (ControllerScript cs) next)) = do
     v <- interpretControllerScript cs
     interpretFT (next v)
+interpretFT' (Free (EvalScript (InfrastructureScript is) next)) = do
+    v <- interpretInfrastructureScript is
+    interpretFT (next v)
     
 runFreeIOArr interpret ar v = do
     let p = runArrEff1 ar v
-    --x <- runFreeT p
     (c, next) <- interpret p -- TODO: what to do with next?
     return c
+
 
     
 test :: IO ()

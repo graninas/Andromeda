@@ -67,29 +67,33 @@ impossible controller = do
 interpretControllerScript (Pure a) = return a
 interpretControllerScript (Free proc) = case proc of
     Get c p next -> do
-        print $ "Get: " ++ show c ++ ", " ++ show p
+        print ("Get", c, p)
         interpretControllerScript (next trueValue)
     Set c p v next -> do
-        print $ "Set: " ++ show c ++ ", " ++ show p ++ ", " ++ show v
+        print ("Set", c, p, v)
         interpretControllerScript next
     Read c p next -> do
-        print $ "Read: " ++ show c ++ ", " ++ show p
+        print ("Read", c, p)
         interpretControllerScript (next $ toKelvin 100.0)
     ReadCelsius c p next -> do
-        print $ "ReadCelsius: " ++ show c ++ ", " ++ show p
+        print ("ReadCelsius", c, p)
         interpretControllerScript (next $ toCelsius 55.0)
     ReadKelvin c p next -> do
-        print $ "ReadKelvin: " ++ show c ++ ", " ++ show p
+        print ("ReadKelvin", c, p)
         interpretControllerScript (next $ toKelvin 3.0)
     Run c cmd next -> do
-        print $ "Run: " ++ show c ++ ", " ++ show cmd
+        print ("Run", c, cmd)
         interpretControllerScript next
-{-
+
+interpretInfrastructureScript (Pure a) = return a
+interpretInfrastructureScript (Free proc) = case proc of
     SendTo rec val next -> do
-        print $ "SendTo val: " ++ show val
+        print ("SendTo", val)
         rec val
-        interpretControllerScript next
-        -}
+        interpretInfrastructureScript next
+    StoreValue dbVal next -> do
+        print ("StoreValue", dbVal)
+        interpretInfrastructureScript next
         
 nozzleTemerature, nozzlePressure, nozzle1T, nozzle2T, nozzle1P, nozzle2P :: ComponentIndex
 nozzleTemerature = "nozzle-t"
