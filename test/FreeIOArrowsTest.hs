@@ -11,19 +11,17 @@ import Andromeda
 import TestCommon
 import Lib
 
+-- This file contains hacks and shortpaths to demonstrate the approach to be designed.
+-- TODO: add new tests
+-- TODO: implement arrows and scripts poperly.
+
 type ControlProgramFT a = FreeT Control IO a
+type ControlFreeIO = FreeT Control IO
+type FlowIOArr b c = ArrEff ControlFreeIO b c
 
 evalScriptFT :: Script a -> ControlProgramFT a
 evalScriptFT scr = liftF (EvalScript scr id)
 
-type ControlFreeIO = FreeT Control IO
-type FlowIOArr b c = ArrEff ControlFreeIO b c
--- This file contains hacks and shortpaths to demonstrate the approach to be designed.
-
-storeValueA :: FlowIOArr DbValue ()
-storeValueA = mArr (evalScriptFT . infrastructureScript . storeValue)
-
--- TODO: implement arrows and scripts poperly.
 valueA :: FlowIOArr ValueSource (Measurement Kelvin)
 valueA = arr (const $ toKelvin 1.0)
 
@@ -42,7 +40,6 @@ monitor :: FlowIOArr () ()
 monitor = proc _ -> do
     t1 <- periodicA (seconds 10000) valueA -< boostersNozzle1T
     v1 <- calculateSomething -< t1
-    storeValueA -< (boostersNozzle1T, t1, v1)
     returnA -< ()
 
 interpretFT :: ControlProgramFT a -> IO a

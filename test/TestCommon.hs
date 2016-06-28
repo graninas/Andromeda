@@ -9,91 +9,64 @@ import Control.Monad.Free
 
 boostersController = Controller "Boosters"
 
-{-
-database :: Value -> IO ()
-database v = print $ "Sended to DB: " ++ show v
-
-reporter :: Value -> IO ()
-reporter v = print $ "Reported: " ++ show v
-
-saveData :: Value -> ControllerScript ()
-saveData = sendTo database
-sendReport :: String -> ControllerScript ()
-sendReport s = sendTo reporter (stringValue s)
-sendData :: Value -> ControllerScript ()
-sendData v = saveData v >> sendReport ("sending: " ++ show v)
--}
-
 start   = Command "start" Nothing
 stop    = Command "stop" Nothing
 power f = Command "power" (Just $ floatValue f)
 
-readTemperature :: Controller -> ControllerScriptT Kelvin Float
-readTemperature controller = do
-    t <- read controller temperature
+logReceiver :: Receiver
+logReceiver = \v -> print v
+
+alarmReceiver :: Receiver
+alarmReceiver = \v -> print ("WARNING!", v)
+
+readTemperature :: Controller -> ComponentIndex -> ControllerScriptT Kelvin Float
+readTemperature controller idx = do
+    t <- read controller idx temperature
     return $ fromKelvin t
 
-readTemperatureCelsius :: Controller -> ControllerScriptT Celsius Float
-readTemperatureCelsius controller = do
-    t <- readCelsius controller temperatureCelsius
-    return $ fromCelsius t
-
-readTemperatureKelvin :: Controller -> ControllerScriptT Kelvin Float
-readTemperatureKelvin controller = do
-    t <- readKelvin controller temperatureKelvin
-    return $ fromKelvin t
-
-readTemperatureKelvin1 :: Controller -> ControllerScriptM Kelvin
-readTemperatureKelvin1 controller = do
-    readKelvin controller temperatureKelvin
-    
-readPressure :: Controller -> ControllerScriptT Pascal Float
-readPressure controller = do
-    t <- read controller pressure
+readPressure :: Controller -> ComponentIndex -> ControllerScriptT Pascal Float
+readPressure controller idx = do
+    t <- read controller idx pressure
     return $ fromPascal t
 
-{-
--- Type safety:
--- Couldn't match type ‘Kelvin’ with ‘Celsius’
--- impossible :: Monad m => Controller -> m Float
-impossible controller = do
-    t <- read controller temperature
-    return $ fromCelsius t
--}
 
-
--- Mocking interpreter for tests.
--- interpretControllerScript :: ControllerScript () -> IO ()
-interpretControllerScript (Pure a) = return a
-interpretControllerScript (Free proc) = case proc of
-    Get c p next -> do
-        print ("Get", c, p)
-        interpretControllerScript (next trueValue)
-    Set c p v next -> do
-        print ("Set", c, p, v)
-        interpretControllerScript next
-    Read c p next -> do
-        print ("Read", c, p)
-        interpretControllerScript (next $ toKelvin 100.0)
-    ReadCelsius c p next -> do
-        print ("ReadCelsius", c, p)
-        interpretControllerScript (next $ toCelsius 55.0)
-    ReadKelvin c p next -> do
-        print ("ReadKelvin", c, p)
-        interpretControllerScript (next $ toKelvin 3.0)
-    Run c cmd next -> do
-        print ("Run", c, cmd)
-        interpretControllerScript next
+interpretScript (ControllerScript scr)     = interpretControllerScript scr
+interpretScript (InfrastructureScript scr) = interpretInfrastructureScript scr
 
 interpretInfrastructureScript (Pure a) = return a
-interpretInfrastructureScript (Free proc) = case proc of
-    SendTo rec val next -> do
-        print ("SendTo", val)
-        rec val
-        interpretInfrastructureScript next
-    StoreValue dbVal next -> do
-        print ("StoreValue", dbVal)
-        interpretInfrastructureScript next
+{-
+interpretInfrastructureScript (Free (StoreReading r next)) = do
+    print ("StoreReading", r)
+    interpretInfrastructureScript next
+    -}
+interpretInfrastructureScript (Free (SendTo r v next)) = do
+    print ("SendTo", v)
+    r v
+    interpretInfrastructureScript next
+interpretInfrastructureScript (Free (GetCurrentTime next)) = do
+    print "GetCurrentTime"
+    interpretInfrastructureScript (next 10)
+
+interpretControllerScript (Pure a) = return a
+interpretControllerScript (Free (Get c p next)) = do
+    print ("Get", c, p)
+    interpretControllerScript (next (StringValue "ggg"))
+interpretControllerScript (Free (Set c p v next)) = do
+    print ("Get", c, p, v)
+    interpretControllerScript next
+interpretControllerScript (Free (Read c ci p next)) = do
+    print ("Read", c, ci, p)
+    interpretControllerScript (next (Measurement . FloatValue $ 33.3))
+interpretControllerScript (Free (Run c cmd next)) = do
+    print ("Run", c, cmd)
+    interpretControllerScript (next (Right "OK."))
+    
+interpretControlProgram :: ControlProgram a -> IO a
+interpretControlProgram (Pure a) = return a
+interpretControlProgram (Free (EvalScript scr next)) = do
+    res <- interpretScript scr
+    interpretControlProgram (next res)
+    
         
 nozzleTemerature, nozzlePressure, nozzle1T, nozzle2T, nozzle1P, nozzle2P :: ComponentIndex
 nozzleTemerature = "nozzle-t"

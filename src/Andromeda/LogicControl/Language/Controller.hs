@@ -17,17 +17,14 @@ data Command = Command String (Maybe Value)
   deriving (Show, Read, Eq)
 newtype Controller = Controller String
   deriving (Show, Read, Eq)
+type CommandResult = Either String String
 
+-- TODO: rework ComponentIndex, ValueSource and relations with HDL.
 data Procedure tag a
     = Get Controller Property (Value -> a)
     | Set Controller Property Value a
-    | Read Controller (Parameter tag) (Measurement tag -> a)
-    | Run Controller Command a
-    
-    -- Special versions of Read to show it works with all tags.
-    -- This is needed when redesign of Parameter and Measurement is happen.
-    | ReadCelsius Controller (Parameter Celsius) (Measurement Celsius -> a)
-    | ReadKelvin Controller  (Parameter Kelvin)  (Measurement Kelvin -> a)
+    | Read Controller ComponentIndex (Parameter tag) (Measurement tag -> a)
+    | Run Controller Command (CommandResult -> a)
   deriving (Functor)
 
 type ControllerScriptT tag a = Free (Procedure tag) a
@@ -41,19 +38,11 @@ get c p = liftF (Get c p id)
 set :: Controller -> Property -> Value -> ControllerScript ()
 set c p v = liftF (Set c p v ())
 
-read :: Controller -> Parameter tag -> ControllerScriptM tag
-read c p = liftF (Read c p id)
+read :: Controller -> ComponentIndex -> Parameter tag -> ControllerScriptM tag
+read c idx p = liftF (Read c idx p id)
 
-readCelsius :: Controller -> Parameter Celsius -> ControllerScriptM Celsius
-readCelsius c p = liftF (ReadCelsius c p id)
-
-readKelvin :: Controller -> Parameter Kelvin -> ControllerScriptM Kelvin
-readKelvin c p = liftF (ReadKelvin c p id)
-
-run :: Controller -> Command -> ControllerScript ()
-run c cmd = liftF (Run c cmd ())
--- Example without liftF:
---run c cmd = Free (Run c cmd (Pure ()))
+run :: Controller -> Command -> ControllerScript CommandResult
+run c cmd = liftF (Run c cmd id)
 
 status = Status
 

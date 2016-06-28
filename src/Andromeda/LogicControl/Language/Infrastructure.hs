@@ -12,20 +12,24 @@ import Prelude hiding (read)
 
 -- Raw dummy types and language instructions.
 -- TODO: design it.
-
+type Time = Int
 type Receiver = Value -> IO ()
 
-type DbValue = (ValueSource, Measurement Kelvin, (String, Float))
-
--- TODO: can be storing of value unified with SendTo?
-data Action a = StoreValue DbValue a
-              | SendTo Receiver Value a
+-- TODO: remove store reading from here to DataAccessScript
+data Action a = --StoreReading Reading a
+                SendTo Receiver Value a
+              | GetCurrentTime (Time -> a)
   deriving (Functor)
 
 type InfrastructureScript a = Free Action a
 
-storeValue :: DbValue -> InfrastructureScript ()
-storeValue val = liftF $ StoreValue val ()
+--storeReading :: Reading -> InfrastructureScript ()
+--storeReading reading = liftF $ StoreReading reading ()
 
 sendTo :: Receiver -> Value -> InfrastructureScript ()
 sendTo r v = liftF (SendTo r v ())
+
+getCurrentTime :: InfrastructureScript Time
+getCurrentTime = liftF (GetCurrentTime id)
+
+

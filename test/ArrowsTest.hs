@@ -12,11 +12,9 @@ import TestCommon
 import Lib
 
 -- This file contains hacks and shortpaths to demonstrate the approach to be designed.
-
-storeValueA :: FlowArr DbValue ()
-storeValueA = mArr (evalScript . infrastructureScript . storeValue)
-
+-- TODO: add new tests
 -- TODO: implement arrows and scripts poperly.
+
 valueA :: FlowArr ValueSource (Measurement Kelvin)
 valueA = undefined
 
@@ -36,7 +34,6 @@ monitor :: FlowArr () ()
 monitor = proc _ -> do
     t1 <- periodicA'' (seconds 1) valueA -< boostersNozzle1T
     v1 <- calculateSomething -< t1
-    storeValueA -< (boostersNozzle1T, t1, v1)
     returnA -< ()
 
 interpret' :: ControlProgram a -> IO a
@@ -44,7 +41,7 @@ interpret' (Pure a) = return a
 interpret' (Free (EvalScript (ControllerScript cs) next)) = do
     v <- interpretControllerScript cs
     interpret' (next v)
-    
+
 test :: IO ()
 test = do
     print "ArrowsTest:"

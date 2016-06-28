@@ -11,3 +11,9 @@ data Script b = ControllerScript (ControllerScript b)
 
 infrastructureScript :: InfrastructureScript b -> Script b
 infrastructureScript = InfrastructureScript
+
+controllerScript :: ControllerScript b -> Script b
+controllerScript = ControllerScript
+
+computationScript :: ComputationScript b -> Script b
+computationScript = ComputationScript
