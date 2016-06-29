@@ -4,6 +4,7 @@ module Andromeda (
     module Andromeda.Calculations,
     module Andromeda.Hardware,
     module Andromeda.LogicControl,
+    module Andromeda.Language,
     module Andromeda.Assets
   ) where
 
@@ -12,4 +13,5 @@ import Andromeda.Common
 import Andromeda.Calculations
 import Andromeda.Hardware
 import Andromeda.LogicControl
+import Andromeda.Language
 import Andromeda.Assets

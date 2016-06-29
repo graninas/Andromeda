@@ -19,15 +19,19 @@ library
   exposed-modules:     Control.Arrow.ArrEff,
                        Control.Arrow.Reactive,
                        Control.Service.Remote,
-                       Lib,
                        
+                       Lib,                       
                        Andromeda,
+                       
                        Andromeda.Common,
                        Andromeda.Common.Value,
                        Andromeda.Common.Untag,
+                       Andromeda.Common.Parsing,
+                       
                        Andromeda.Simulator,
                        Andromeda.Simulator.Simulation,
                        Andromeda.Simulator.ValueGenerators,
+                       
                        Andromeda.Hardware,
                        Andromeda.Hardware.HDL,
                        Andromeda.Hardware.HNDL,
@@ -36,9 +40,11 @@ library
                        Andromeda.Hardware.Network,
                        Andromeda.Hardware.Device,
                        Andromeda.Hardware.Runtime,
+                       
                        Andromeda.Calculations,
                        Andromeda.Calculations.Measurements,
                        Andromeda.Calculations.Physics.Units,
+                       
                        Andromeda.LogicControl,
                        Andromeda.LogicControl.Language.Controller,
                        Andromeda.LogicControl.Language.Computation,
@@ -46,8 +52,12 @@ library
                        Andromeda.LogicControl.Language.Control,
                        Andromeda.LogicControl.Language.Script,
                        Andromeda.LogicControl.Language.ControlFlow,
-                       Andromeda.LogicControl.Runtime,
-                       Andromeda.LogicControl.Interpreter,
+                       
+                       Andromeda.Language,
+                       Andromeda.Language.External.LogicControl.Parser,
+                       Andromeda.Language.External.LogicControl.AST,
+                       Andromeda.Language.External.LogicControl.Translator,
+                       
                        Andromeda.Assets,
                        Andromeda.Assets.Hardware.Components
                        
@@ -62,7 +72,8 @@ library
                        lens,
                        Stream,
                        stm,
-                       clock >= 0.7.2
+                       clock >= 0.7.2,
+                       parsec
                        
   default-language:    Haskell2010
 
@@ -90,6 +101,7 @@ test-suite Andromeda-test
                        Stream,
                        stm,
                        clock >= 0.7.2,
+                       parsec,
                        Andromeda
   other-modules:       TestCommon,
                        BoostersHeatUpTest,
@@ -99,6 +111,8 @@ test-suite Andromeda-test
                        ArrowsTest,
                        FreeIOArrowsTest,
                        ReactiveArrowsTest,
+                       ParsingTest,
+                       ControllerTest,
                        
                        Simulator.InitializationTest,
                        Simulator.AutomationTest

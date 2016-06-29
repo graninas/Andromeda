@@ -1,3 +1,10 @@
 
 
+const boosters = Controller ("boosters")
+const start = Command ("start", Nothing)
+const stop = Command ("stop", Nothing)
 
+begin boostersProgram
+    var result1 = Run (boosters, start)
+    var result2 = Run (boosters, stop)
+end boostersProgram

@@ -9,6 +9,7 @@ import qualified ArrowsTest as T6
 import qualified FreeIOArrowsTest as T7
 import qualified ReactiveArrowsTest as T8
 import qualified ControllerTest as T9
+import qualified ParsingTest as T10
 
 import qualified Simulator.AutomationTest as Sim1
 import qualified Simulator.InitializationTest as Sim2
@@ -31,4 +32,5 @@ main = do
     --T7.test
     --T8.test
     T9.test
+    T10.test
     
