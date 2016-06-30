@@ -1,23 +1,31 @@
 module Andromeda.Language.External.LogicControl.AST where
 
+type IdName = String
+type ConstrName = String
+
 data Constant = StringConstant String
               | IntegerConstant Int
   deriving (Show)
 
 data ArgDef = NoneArgs
-            | Args [Entry]
+            | Args [Expr]
   deriving (Show)
   
-data Constructor = Constructor String ArgDef
+data Constructor = Constructor ConstrName ArgDef
   deriving (Show)
-  
-data Entry = ConstantEntry Constant
-           | ConstructorEntry Constructor
+ 
+data Expr = ConstantExpr Constant
+          | ConstructorExpr Constructor
+          | IdentifierExpr IdName
+  deriving (Show)
+ 
+data Statement = ConstantStmt IdName Expr
+               | ValStmt IdName Expr
+               | CallStmt Expr
   deriving (Show)
 
-data Declaration = ConstDecl String Entry
-                 | BeginDecl String
-                 | EndDecl String
+data IndentedStatement = IndentedStmt Int Statement
   deriving (Show)
   
-  
+data ProcedureDeclaration = ProcDecl IdName ArgDef [IndentedStatement]
+  deriving (Show)

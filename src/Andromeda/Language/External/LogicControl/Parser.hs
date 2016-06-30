@@ -8,38 +8,75 @@ import Text.Parsec.Combinator
 import Text.Parsec.Char
 import Text.Parsec
 
-stringConstant  = fmap StringConstant stringConst
-integerConstant = fmap IntegerConstant integerConst
-constantEntry   = fmap ConstantEntry (stringConstant <|> integerConstant) -- <|> floatConstant
+stringConstantExpr  = fmap StringConstant stringConstant
+integerConstantExpr = fmap IntegerConstant integerConstant
+constantExpr        = fmap ConstantExpr (stringConstantExpr <|> integerConstantExpr) -- <|> floatConstantExpr
+identifierExpr      = fmap IdentifierExpr identifier
+
+constructorName = do
+    bigC <- upper
+    smallCs <- many lower
+    return $ bigC : smallCs
 
 argDef = do
-    trueSpaces
-    args <- listOf' '(' ')' entry
+    args <- listOf' '(' ')' expr
     return $ Args args
 
 constructor = do
     trueSpaces
-    bigC <- upper
-    smallCs <- many lower
+    n <- constructorName
     trueSpaces
     ad <- argDef <|> return NoneArgs
-    return $ Constructor (bigC : smallCs) ad
+    return $ Constructor n ad
 
-constructorEntry = do
+constructorExpr = do
     c <- constructor
-    return $ ConstructorEntry c
+    return $ ConstructorExpr c
     
-entry = constantEntry <|> constructorEntry
+expr = constantExpr <|> constructorExpr <|> identifierExpr
     
-constDeclaration = do
+constantStatement = do
     string "const"
     trueSpaces
     constId <- identifier
     assignment
-    e <- entry
-    return $ ConstDecl constId e
+    e <- expr
+    return $ ConstantStmt constId e
 
-beginDeclaration = do
+valStatement = do
+    string "val"
+    trueSpaces
+    valId <- identifier
+    assignment
+    e <- expr
+    return $ ValStmt valId e
+
+callStatement = do
+    ce <- constructorExpr
+    return $ CallStmt ce
+
+statement = constantStatement <|> valStatement <|> callStatement -- <|> ifThenElseStmt
+
+indentation = count 4 (char ' ')
+
+indentedStatement = do
+    is <- many1 indentation -- mandatory indentation!!
+    stmt <- statement
+    return (IndentedStmt (length is) stmt)
+
+procedureDeclaration = do
+    n <- constructorName
+    trueSpaces
+    ad <- argDef
+    trueSpaces
+    char ':'
+    trueSpaces
+    stmts <- many indentedStatement
+    return $ ProcDecl n ad stmts
+    
+{-
+    
+constrDeclaration = do
     string "begin"
     trueSpaces
     bId <- identifier
@@ -50,4 +87,19 @@ endDeclaration = do
     trueSpaces
     eId <- identifier
     return $ EndDecl eId
+    
+data Expr = ConstantExpr Constant
+          | ConstructorExpr Constructor
+          | IdentifierExpr IdName
+  deriving (Show)
 
+data Statement = ConstantStmt IdName Expr
+               | ValStmt IdName Expr
+  deriving (Show)
+
+data IndentedDeclaration = IndentedDecl Int Statement
+  deriving (Show)
+  
+data ProcedureDeclaration = ProcDecl IdName [ArgDef] [IndentedDeclaration]
+  deriving (Show)
+  -}
