@@ -8,6 +8,8 @@ import Text.Parsec.Combinator
 import Text.Parsec.Char
 import Text.Parsec
 
+eol' = string "\n"
+
 stringConstantExpr  = fmap StringConstant stringConstant
 integerConstantExpr = fmap IntegerConstant integerConstant
 constantExpr        = fmap ConstantExpr (stringConstantExpr <|> integerConstantExpr) -- <|> floatConstantExpr
@@ -69,8 +71,6 @@ indentedStatement = do
     is <- many1 indentation -- mandatory indentation!!
     stmt <- statement
     return (IndentedStmt (length is) stmt)
-
-eol' = string "\n"
        
 linedIndentedStatement = do
     stmt <- indentedStatement
@@ -83,7 +83,6 @@ linedEmptyStatement = do
 linedStatement = do
     eol'
     linedIndentedStatement <|> linedEmptyStatement
-    
 
 param = do
     string "val"
@@ -112,3 +111,24 @@ procedure = do
     ps <- procedureStmt
     b <- procedureBody
     return $ Proc ps b
+    
+procedureEntry = do
+    p <- procedure
+    trueSpaces
+    return $ ProcedureEntry p
+    
+linedEntry = do
+    s <- statement
+    trueSpaces
+    return $ LinedEntry s
+    
+linedEmptyEntry = do
+    eol'
+    many indentation
+    return LinedEmptyEntry
+
+programEntry = procedureEntry <|> linedEntry <|> linedEmptyEntry
+
+program = do
+    es <- many programEntry
+    return $ Program es

@@ -40,6 +40,11 @@ procStr1 = "BoostersProgram:" ++ "\n    val result2 = Run (boosters, CommandAbc 
 procStr2 = "BoostersProgram:" ++ "\n    val result2 = Run (boosters, CommandAbc (\"stop\", Nothing))\n    val result2 = Run (boosters, Command (\"stop\", Nothing))  "
 procStr3 = "BoostersProgram   (val abc, val cde): " ++ "\n    val result2 = Run (boosters, CommandAbc (\"stop\", Nothing))"
 procStr4 = "BoostersProgram   (val abc, val cde):" ++ "\n\n    val result2 = Run (boosters, CommandAbc (\"stop\", Nothing))"
+progStr1 = "BoostersProgram   (val abc, val cde):\n    val result2 = Run (boosters, CommandAbc (\"stop\", Nothing))\nconst boosters=Controller(\"boosters\")"
+progStr2 = "BoostersProgram:\n    val result2 = Run (boosters, CommandAbc (\"stop\", Nothing))\n    val result2 = Run (boosters, Command (\"stop\", Nothing))  \n\n\n"
+progStr3 = "const str = \"boosters\"\nval result1 = Run (boosters, start)\nval result2 = Run (boosters, Command (\"stop\", Nothing))"
+progStr4 = "\n\nBoostersProgram:\n    val result2 = Run (boosters, CommandAbc (\"stop\", Nothing))\nconst boosters=Controller(\"boosters\")"
+
 
 parseTest' n a b = do
     putStr $ show n ++ ": "
@@ -78,6 +83,12 @@ test = do
     parseTest' 27 procedure procStr2
     parseTest' 28 procedure procStr3
     parseTest' 29 procedure procStr4
+    
+    parseTest' 30 program progStr1
+    parseTest' 31 program progStr2
+    parseTest' 32 program progStr3
+    parseTest' 33 program progStr4
+    
     
     
     print ""

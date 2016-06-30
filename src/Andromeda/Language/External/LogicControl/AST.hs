@@ -31,16 +31,23 @@ data Statement = ConstantStmt IdName Expr
 data IndentedStatement = IndentedStmt Int Statement
   deriving (Show)
 
-data LinedStatement = LinedIndentedStmt IndentedStatement
-                    | LinedEmptyStmt
+data LinedIndentedStatement = LinedIndentedStmt IndentedStatement
+                            | LinedEmptyStmt
   deriving (Show)
   
 data ProcedureDecl = ProcDecl IdName ParamDef
   deriving (Show)
   
-data ProcedureBody = ProcBody [LinedStatement]
+data ProcedureBody = ProcBody [LinedIndentedStatement]
   deriving (Show)
   
 data ProcedureDef = Proc ProcedureDecl ProcedureBody
   deriving (Show)
   
+data ProgramEntry = ProcedureEntry ProcedureDef
+                  | LinedEntry Statement
+                  | LinedEmptyEntry
+  deriving (Show)
+
+data Program = Program [ProgramEntry]
+  deriving (Show)
