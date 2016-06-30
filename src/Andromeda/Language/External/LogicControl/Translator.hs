@@ -5,11 +5,15 @@ import Andromeda.Language.External.LogicControl.AST
 
 import qualified Data.Map as M
 
-type ArgsCount = Int
-data Constr = ScriptConstr ArgsCount
+type Arity = Int
+data Constr = ScriptConstr Arity
+            | SysConstr Arity
   deriving (Show, Read, Eq, Ord)
 type ConstructorsTable = M.Map String Constr
 type ScriptsTable = M.Map ScriptType ConstructorsTable
+
+type SysConstructorsTable = ConstructorsTable
+
 
 fillControllerScriptConstrs :: ConstructorsTable
 fillControllerScriptConstrs = M.fromList
@@ -24,9 +28,15 @@ fillScriptsTable = M.fromList
     [ (ControllerScriptDef, fillControllerScriptConstrs)
     ]
 
+fillSysConstructorsTable :: ConstructorsTable
+fillSysConstructorsTable = M.fromList
+    [ ("Controller", SysConstr 1)
+--    , ("Set", ScriptConstr 3)
+--    , ("Read", ScriptConstr 3)
+--    , ("Run", ScriptConstr 2)
+    ]
 
-
-
+constructorArity (ScriptConstr arity) = arity
 
 
 
