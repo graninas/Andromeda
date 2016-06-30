@@ -18,11 +18,14 @@ data ParamDef = NoneParams
 data Constructor = Constructor ConstrName ArgDef
   deriving (Show)
   
+data Identifier = Identifier IdName ArgDef
+  deriving (Show)
+  
 data Expr = ConstantExpr Constant
           | ConstructorExpr Constructor
-          | IdentifierExpr IdName
+          | IdentifierExpr Identifier
   deriving (Show)
- 
+
 data Statement = ConstantStmt IdName Expr
                | ValStmt IdName Expr
                | CallStmt Expr

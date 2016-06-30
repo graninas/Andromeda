@@ -1,0 +1,15 @@
+
+
+const boosters = Controller ("boosters")
+const start = Command ("start", Nothing)
+const stop = Command ("stop", Nothing)
+const successCmd = Right ("OK")
+const logInfoSuccess = LogInfo ("success")
+
+BoostersProgram:
+    val result1 = Run (boosters, start)
+    val result2 = Run (boosters, Command ("stop", Nothing))
+    LogInfo ("start command succeeded.")
+    logInfoSuccess
+    444
+

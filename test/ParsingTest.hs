@@ -2,6 +2,7 @@
 module ParsingTest where
 
 import Andromeda
+import Paths_Andromeda
 
 import Text.Parsec.String
 import Text.Parsec.Combinator
@@ -45,13 +46,26 @@ progStr2 = "BoostersProgram:\n    val result2 = Run (boosters, CommandAbc (\"sto
 progStr3 = "const str = \"boosters\"\nval result1 = Run (boosters, start)\nval result2 = Run (boosters, Command (\"stop\", Nothing))"
 progStr4 = "\n\nBoostersProgram:\n    val result2 = Run (boosters, CommandAbc (\"stop\", Nothing))\nconst boosters=Controller(\"boosters\")"
 
+dataRelativeDir = "/../../../../../../test/Data/"
+dataFile bd f = bd ++ dataRelativeDir ++ f
 
-parseTest' n a b = do
+parseTest' n p str = do
     putStr $ show n ++ ": "
-    parseTest a b
+    case parse p "" str of
+         Left e -> putStr "FAILED: " >> print e
+         Right _ -> putStrLn "succedeed."
     
+parseFromFileTest f = do
+    bd <- getBinDir  
+    res <- parseFromFile program (dataFile bd f)
+    putStr $ "file " ++ f ++ ": "
+    case res of
+         Left e -> putStr "FAILED: " >> print e
+         Right _ -> putStrLn "succedeed."
+    
+test :: IO ()
 test = do
-    print ""
+    print "Parsing test."
     
     parseTest'  1 constantStatement constStr1
     parseTest'  2 constantStatement constStr2
@@ -82,13 +96,13 @@ test = do
     parseTest' 26 procedure procStr1
     parseTest' 27 procedure procStr2
     parseTest' 28 procedure procStr3
-    parseTest' 29 procedure procStr4
-    
+    parseTest' 29 procedure procStr4    
     parseTest' 30 program progStr1
     parseTest' 31 program progStr2
     parseTest' 32 program progStr3
-    parseTest' 33 program progStr4
+    parseTest' 33 program progStr4    
+
+    parseFromFileTest "controller_script1.txt"
+    parseFromFileTest "controller_script2.txt"
     
     
-    
-    print ""

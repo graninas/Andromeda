@@ -13,7 +13,7 @@ eol' = string "\n"
 stringConstantExpr  = fmap StringConstant stringConstant
 integerConstantExpr = fmap IntegerConstant integerConstant
 constantExpr        = fmap ConstantExpr (stringConstantExpr <|> integerConstantExpr) -- <|> floatConstantExpr
-identifierExpr      = fmap IdentifierExpr identifier
+
 
 constructorName = do
     bigC <- upper
@@ -31,7 +31,6 @@ emptyArgDef = do
 argDef = argsList <|> return NoneArgs
     
 constructor = do
-    trueSpaces
     n <- constructorName
     trueSpaces
     ad <- argDef
@@ -40,7 +39,17 @@ constructor = do
 constructorExpr = do
     c <- constructor
     return $ ConstructorExpr c
+
+identifier' = do
+    idN <- identifier
+    trueSpaces
+    ad <- argDef
+    return $ Identifier idN ad
     
+identifierExpr = do
+    identif <- identifier'
+    return $ IdentifierExpr identif
+
 expr = constantExpr <|> constructorExpr <|> identifierExpr
     
 constantStatement = do
@@ -58,10 +67,10 @@ valStatement = do
     assignment
     e <- expr
     return $ ValStmt valId e
-
+    
 callStatement = do
-    ce <- constructorExpr
-    return $ CallStmt ce
+    c <- expr
+    return $ CallStmt c
 
 statement = constantStatement <|> valStatement <|> callStatement -- <|> ifThenElseStmt
 
