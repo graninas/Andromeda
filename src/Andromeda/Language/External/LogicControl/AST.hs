@@ -44,10 +44,14 @@ data ProcedureDecl = ProcDecl IdName ParamDef
 data ProcedureBody = ProcBody [LinedIndentedStatement]
   deriving (Show)
   
-data ProcedureDef = Proc ProcedureDecl ProcedureBody
+data ProcedureDef = ProcDef ProcedureDecl ProcedureBody
+  deriving (Show)
+  
+data ScriptType = ControllerScriptDef | InfrastructureScriptDef
   deriving (Show)
   
 data ProgramEntry = ProcedureEntry ProcedureDef
+                  | ScriptEntry ScriptType ProcedureDef
                   | LinedEntry Statement
                   | LinedEmptyEntry
   deriving (Show)

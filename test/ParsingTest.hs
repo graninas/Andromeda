@@ -3,14 +3,7 @@ module ParsingTest where
 
 import Andromeda
 import Paths_Andromeda
-
-import Text.Parsec.String
-import Text.Parsec.Combinator
-import Text.Parsec.Char
-import Text.Parsec
   
-
-    
 constStr1 = "const boosters = ControllerAbc (\"boosters adsf 32 3 3$ %$@ TELaes jkfj lkf jkjfs\")"
 constStr2 = "const boosters=Controller(\"boosters\")"
 constStr3 = "const boosters=Controller "
@@ -51,17 +44,20 @@ dataFile bd f = bd ++ dataRelativeDir ++ f
 
 parseTest' n p str = do
     putStr $ show n ++ ": "
-    case parse p "" str of
+    case parse p str of
          Left e -> putStr "FAILED: " >> print e
          Right _ -> putStrLn "succedeed."
     
-parseFromFileTest f = do
+parseFromFileTest needShow f = do
     bd <- getBinDir  
     res <- parseFromFile program (dataFile bd f)
     putStr $ "file " ++ f ++ ": "
     case res of
          Left e -> putStr "FAILED: " >> print e
-         Right _ -> putStrLn "succedeed."
+         Right r -> do
+             putStrLn "succedeed."
+             if (needShow == 1) then print r
+                                else return ()
     
 test :: IO ()
 test = do
@@ -93,16 +89,17 @@ test = do
     parseTest' 23 linedStatement procLinedIdentedStr2
     parseTest' 24 linedStatement procLinedIdentedStr3
     parseTest' 25 procedureBody procBody    
-    parseTest' 26 procedure procStr1
-    parseTest' 27 procedure procStr2
-    parseTest' 28 procedure procStr3
-    parseTest' 29 procedure procStr4    
+    parseTest' 26 procedureDef procStr1
+    parseTest' 27 procedureDef procStr2
+    parseTest' 28 procedureDef procStr3
+    parseTest' 29 procedureDef procStr4    
     parseTest' 30 program progStr1
     parseTest' 31 program progStr2
     parseTest' 32 program progStr3
     parseTest' 33 program progStr4    
 
-    parseFromFileTest "controller_script1.txt"
-    parseFromFileTest "controller_script2.txt"
+    parseFromFileTest 0 "complex_script1.txt"
+    parseFromFileTest 0 "complex_script2.txt"
+    parseFromFileTest 1 "controller_script_simple1.txt"
     
     

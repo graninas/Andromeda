@@ -1,19 +1,19 @@
+{-# LANGUAGE FlexibleContexts #-}
 module Andromeda.Language.External.LogicControl.Parser where
 
 import Andromeda.Language.External.LogicControl.AST
 import Andromeda.Common.Parsing
 
-import Text.Parsec.String
+import Text.Parsec.String as P
 import Text.Parsec.Combinator
 import Text.Parsec.Char
-import Text.Parsec
+import Text.Parsec as P
 
 eol' = string "\n"
 
 stringConstantExpr  = fmap StringConstant stringConstant
 integerConstantExpr = fmap IntegerConstant integerConstant
 constantExpr        = fmap ConstantExpr (stringConstantExpr <|> integerConstantExpr) -- <|> floatConstantExpr
-
 
 constructorName = do
     bigC <- upper
@@ -74,10 +74,10 @@ callStatement = do
 
 statement = constantStatement <|> valStatement <|> callStatement -- <|> ifThenElseStmt
 
-indentation = count 4 (char ' ')
+indentationExpr = count 4 (char ' ')
 
 indentedStatement = do
-    is <- many1 indentation -- mandatory indentation!!
+    is <- many1 indentationExpr -- mandatory indentation!!
     stmt <- statement
     return (IndentedStmt (length is) stmt)
        
@@ -86,7 +86,7 @@ linedIndentedStatement = do
     return $ LinedIndentedStmt stmt
     
 linedEmptyStatement = do
-    many indentation
+    many indentationExpr
     return LinedEmptyStmt
     
 linedStatement = do
@@ -116,15 +116,29 @@ procedureBody = do
     stmts <- many linedStatement
     return $ ProcBody stmts
     
-procedure = do
+procedureDef = do
     ps <- procedureStmt
     b <- procedureBody
-    return $ Proc ps b
+    return $ ProcDef ps b
     
 procedureEntry = do
-    p <- procedure
+    p <- procedureDef
     trueSpaces
     return $ ProcedureEntry p
+    
+scriptTypeDef s c = do
+    string s
+    return c
+    
+scriptType = scriptTypeDef "ControllerScript" ControllerScriptDef
+         <|> scriptTypeDef "InfrastructureScript" InfrastructureScriptDef
+         
+scriptEntry = do
+    st <- between (char '[') (char ']') scriptType
+    trueSpaces
+    p <- procedureDef
+    trueSpaces
+    return $ ScriptEntry st p
     
 linedEntry = do
     s <- statement
@@ -133,11 +147,14 @@ linedEntry = do
     
 linedEmptyEntry = do
     eol'
-    many indentation
+    many indentationExpr
     return LinedEmptyEntry
 
-programEntry = procedureEntry <|> linedEntry <|> linedEmptyEntry
+programEntry = scriptEntry <|> procedureEntry <|> linedEntry <|> linedEmptyEntry
 
 program = do
     es <- many programEntry
     return $ Program es
+
+parse p str = P.parse p "" str
+parseFromFile program f = P.parseFromFile program f

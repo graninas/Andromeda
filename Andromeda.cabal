@@ -108,11 +108,12 @@ test-suite Andromeda-test
                        HardwareDescriptorsTest,
                        HardwareNetworkTest,
                        ParameterTagTest,
+                       ControllerTest,
                        ArrowsTest,
                        FreeIOArrowsTest,
                        ReactiveArrowsTest,
                        ParsingTest,
-                       ControllerTest,
+                       TranslationTest,
                        
                        Simulator.InitializationTest,
                        Simulator.AutomationTest
