@@ -6,7 +6,7 @@ const stop = Command ("stop", Nothing)
 const successCmd = Right ("OK")
 const logInfoSuccess = LogInfo ("success")
 
-BoostersProgram():
+BoostersProgram:
     val result1 = Run (boosters, start)
     if (result1 == successCmd) then
         val result2 = Run (boosters, Command ("stop", Nothing))

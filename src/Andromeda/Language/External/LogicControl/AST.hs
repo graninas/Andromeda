@@ -11,9 +11,13 @@ data ArgDef = NoneArgs
             | Args [Expr]
   deriving (Show)
   
+data ParamDef = NoneParams
+              | Params [IdName]
+  deriving (Show)
+  
 data Constructor = Constructor ConstrName ArgDef
   deriving (Show)
- 
+  
 data Expr = ConstantExpr Constant
           | ConstructorExpr Constructor
           | IdentifierExpr IdName
@@ -26,6 +30,17 @@ data Statement = ConstantStmt IdName Expr
 
 data IndentedStatement = IndentedStmt Int Statement
   deriving (Show)
-  
-data ProcedureDeclaration = ProcDecl IdName ArgDef [IndentedStatement]
+
+data LinedStatement = LinedIndentedStmt IndentedStatement
+                    | LinedEmptyStmt
   deriving (Show)
+  
+data ProcedureDecl = ProcDecl IdName ParamDef
+  deriving (Show)
+  
+data ProcedureBody = ProcBody [LinedStatement]
+  deriving (Show)
+  
+data ProcedureDef = Proc ProcedureDecl ProcedureBody
+  deriving (Show)
+  

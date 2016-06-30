@@ -6,13 +6,14 @@ import Text.Parsec.Char
 import Text.Parsec
 
 symbols = "!@#$%^&*()`~-_=+[]{};'\\:\"|,./<>?"
+stringSymbols = " !@#$%^&*()`~-_=+[]{};'\\:|,./<>?"
 quote = char '"'
 underscore = char '_'
 trueSpace = char ' ' <|> tab
 trueSpaces = many trueSpace
 
 stringConstant :: GenParser Char st String
-stringConstant = between quote quote (many alphaNum)
+stringConstant = between quote quote (many (alphaNum <|> oneOf stringSymbols))
 
 integerConstant :: GenParser Char st Int
 integerConstant = do

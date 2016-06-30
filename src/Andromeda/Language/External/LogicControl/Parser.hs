@@ -15,18 +15,24 @@ identifierExpr      = fmap IdentifierExpr identifier
 
 constructorName = do
     bigC <- upper
-    smallCs <- many lower
+    smallCs <- many alphaNum
     return $ bigC : smallCs
 
-argDef = do
+argsList = do
     args <- listOf' '(' ')' expr
     return $ Args args
-
+    
+emptyArgDef = do
+    between (char '(') (char ')') trueSpaces
+    return NoneArgs
+    
+argDef = argsList <|> return NoneArgs
+    
 constructor = do
     trueSpaces
     n <- constructorName
     trueSpaces
-    ad <- argDef <|> return NoneArgs
+    ad <- argDef
     return $ Constructor n ad
 
 constructorExpr = do
@@ -64,42 +70,45 @@ indentedStatement = do
     stmt <- statement
     return (IndentedStmt (length is) stmt)
 
-procedureDeclaration = do
+eol' = string "\n"
+       
+linedIndentedStatement = do
+    stmt <- indentedStatement
+    return $ LinedIndentedStmt stmt
+    
+linedEmptyStatement = do
+    many indentation
+    return LinedEmptyStmt
+    
+linedStatement = do
+    eol'
+    linedIndentedStatement <|> linedEmptyStatement
+    
+
+param = do
+    string "val"
+    trueSpaces
+    identifier
+   
+paramList = do
+    ps <- listOf' '(' ')' param
+    return $ Params ps
+
+paramDef = paramList <|> return NoneParams
+
+procedureStmt = do
     n <- constructorName
     trueSpaces
-    ad <- argDef
+    pd <- paramDef
     trueSpaces
     char ':'
-    trueSpaces
-    stmts <- many indentedStatement
-    return $ ProcDecl n ad stmts
-    
-{-
-    
-constrDeclaration = do
-    string "begin"
-    trueSpaces
-    bId <- identifier
-    return $ BeginDecl bId
+    return $ ProcDecl n pd    
 
-endDeclaration = do
-    string "end"
-    trueSpaces
-    eId <- identifier
-    return $ EndDecl eId
+procedureBody = do
+    stmts <- many linedStatement
+    return $ ProcBody stmts
     
-data Expr = ConstantExpr Constant
-          | ConstructorExpr Constructor
-          | IdentifierExpr IdName
-  deriving (Show)
-
-data Statement = ConstantStmt IdName Expr
-               | ValStmt IdName Expr
-  deriving (Show)
-
-data IndentedDeclaration = IndentedDecl Int Statement
-  deriving (Show)
-  
-data ProcedureDeclaration = ProcDecl IdName [ArgDef] [IndentedDeclaration]
-  deriving (Show)
-  -}
+procedure = do
+    ps <- procedureStmt
+    b <- procedureBody
+    return $ Proc ps b
