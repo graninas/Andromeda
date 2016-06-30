@@ -26,7 +26,7 @@ data Expr = ConstantExpr Constant
           | IdentifierExpr Identifier
   deriving (Show)
 
-data Statement = ConstantStmt IdName Expr
+data Statement = ConstantStmt IdName Expr -- TODO: make this constexpr (i.e. no Expr, only Constant)
                | ValStmt IdName Expr
                | CallStmt Expr
   deriving (Show)
@@ -48,7 +48,7 @@ data ProcedureDef = ProcDef ProcedureDecl ProcedureBody
   deriving (Show)
   
 data ScriptType = ControllerScriptDef | InfrastructureScriptDef
-  deriving (Show)
+  deriving (Show, Ord, Eq)
   
 data ProgramEntry = ProcedureEntry ProcedureDef
                   | ScriptEntry ScriptType ProcedureDef

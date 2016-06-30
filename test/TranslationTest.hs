@@ -19,6 +19,7 @@ type Table = (String, M.Map String String)
 data Tables = Tables {
       _constants :: Table
     , _values :: Table
+    , _scripts :: ScriptsTable
 }
 
 data Translator = Translator {
@@ -61,9 +62,19 @@ checkNotExistIn table key = do
     x <- use $ tables . table . _2 . at key
     when (isJust x) $ error $ n ++ " exist: " ++ key
     
-translateProgram :: Program -> TranslatorSt ()
-translateProgram (Program [])      = return ()
-translateProgram (Program entries) = mapM_ translateEntry entries
+translateExpr = error "translateExpr"
+
+
+translateLIStatements [] = return ()
+translateLIStatements (LinedEmptyStmt:stmts) = translateLIStatements stmts
+translateLIStatements (LinedIndentedStmt (IndentedStmt i stmt):stmts) = do
+    checkIndentation (==i)
+    translateStatement stmt
+
+translateProcedureDef (ProcDef (ProcDecl n params) (ProcBody stmts)) = do
+    setIndentation 1
+    translateLIStatements stmts
+
 
 {-
 data Statement = ConstantStmt IdName Expr
@@ -76,40 +87,62 @@ data Expr = ConstantExpr Constant
   deriving (Show)
 -}
 
-translateExpr = error "translateExpr"
+findScriptConstructor :: ScriptType -> IdName -> TranslatorSt (Maybe Constr)
+findScriptConstructor st n = do
+    mbs <- use (tables . scripts . at st)
+    case mbs of
+         Nothing -> return Nothing
+         Just t -> return $ view (at n) t
 
-translateIStatement :: Statement -> TranslatorSt ()
-translateIStatement (CallStmt e) = do
-    translateExpr e
-translateIStatement (ValStmt n e) = do
-    checkNotExistIn values n
+findProcedure = error "findProcedure"
 
-translateLIStatements [] = return ()
-translateLIStatements (LinedEmptyStmt:stmts) = translateLIStatements stmts
-translateLIStatements (LinedIndentedStmt (IndentedStmt i stmt):stmts) = do
-    checkIndentation (==i)
-    translateStatement stmt
+findConstructor :: IdName -> TranslatorSt (Maybe Constr)
+findConstructor n = do
+    msc <- use scriptTranslation
+    mbc <- case msc of
+         Just s -> findScriptConstructor s n
+         Nothing -> return Nothing
+    case mbc of
+         Nothing -> findProcedure n
+         _ -> return mbc
 
-translateProcedureDef (ProcDef (ProcDecl n params) (ProcBody stmts)) = do
-    setIndentation 1
-    translateLIStatements stmts
-
-translateEntry :: ProgramEntry -> TranslatorSt ()
-translateEntry (ScriptEntry st pd) = do
-    enableScriptTranslation st
-    translateProcedureDef pd
-    disableScriptTranslation
+runConstructor :: Constructor -> TranslatorSt ()
+runConstructor (Constructor n args) = do
+    c <- findConstructor n
     
-    
-translateEntry LinedEmptyEntry = return ()
-translateEntry (LinedEntry st) = translateStatement st
+    return ()
+
+translateExpression :: Expr -> TranslatorSt ()
+translateExpression (ConstructorExpr c) = do
+    runConstructor c
+translateExpression _ = error "translateExpression"
 
 translateStatement :: Statement -> TranslatorSt ()
 translateStatement c@(ConstantStmt name expr) = do
     checkNotExistIn constants name
-    -- TODO
+    error "translateStatement c@(ConstantStmt expr)"
+translateStatement c@(CallStmt expr) = do
+    error "translateStatement c@(CallStmt expr)"
     
+translateStatement c@(ValStmt name expr) = do
+    checkNotExistIn values name
+    translateExpression expr
+    
+    error "translateStatement c@(ValStmt expr)"
+    
+    
+translateEntry :: ProgramEntry -> TranslatorSt ()
+translateEntry LinedEmptyEntry = return ()
+translateEntry (LinedEntry st) = translateStatement st
+translateEntry (ScriptEntry st pd) = do
+    enableScriptTranslation st
+    translateProcedureDef pd
+    disableScriptTranslation
+translateEntry _ = error "translateEntry"
 
+translateProgram :: Program -> TranslatorSt ()
+translateProgram (Program [])      = return ()
+translateProgram (Program entries) = mapM_ translateEntry entries
 
 fromAst :: Program -> TranslatorSt ()
 fromAst = translateProgram
@@ -124,7 +157,7 @@ parseFromFile' f = do
          Left e -> error $ show e
          Right r -> return r
          
-emptyTables = Tables ("constant", M.empty) ("value", M.empty)
+emptyTables = Tables ("constant", M.empty) ("value", M.empty) fillScriptsTable
 emptySt = Translator emptyTables (return ()) Nothing 0
 
 test :: IO ()
@@ -132,6 +165,7 @@ test = do
     print "Translation test."
 
     res <- parseFromFile' "controller_script_simple1.txt"
+    print res >> print ""
     let (_, (Translator tables prog _ _)) = S.runState (fromAst res) emptySt
     
     interpretControlProgram prog
