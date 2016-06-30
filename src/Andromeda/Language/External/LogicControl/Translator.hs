@@ -6,21 +6,24 @@ import Andromeda.Language.External.LogicControl.AST
 import qualified Data.Map as M
 
 type Arity = Int
-data Constr = ScriptConstr Arity
-            | SysConstr Arity
+type IsRet = Bool
+data Constr = ScriptConstr String Arity IsRet
+            | SysConstr String Arity
   deriving (Show, Read, Eq, Ord)
 type ConstructorsTable = M.Map String Constr
 type ScriptsTable = M.Map ScriptType ConstructorsTable
 
 type SysConstructorsTable = ConstructorsTable
 
+ret = True
+nret = False
 
 fillControllerScriptConstrs :: ConstructorsTable
 fillControllerScriptConstrs = M.fromList
-    [ ("Get", ScriptConstr 2)
-    , ("Set", ScriptConstr 3)
-    , ("Read", ScriptConstr 3)
-    , ("Run", ScriptConstr 2)
+    [ ("Get", ScriptConstr "Get" 2 ret)
+    , ("Set", ScriptConstr "Set" 3 nret)
+    , ("Read", ScriptConstr "Read" 3 ret)
+    , ("Run", ScriptConstr "Run" 2 ret)
     ]
 
 fillScriptsTable :: ScriptsTable
@@ -30,14 +33,23 @@ fillScriptsTable = M.fromList
 
 fillSysConstructorsTable :: ConstructorsTable
 fillSysConstructorsTable = M.fromList
-    [ ("Controller", SysConstr 1)
-    , ("Command", SysConstr 2)
---    , ("Read", ScriptConstr 3)
+    [ ("Controller", SysConstr "Controller" 1)
+    , ("Command", SysConstr "Command" 2)
+    , ("Nothing", SysConstr "Nothing" 0)
 --    , ("Run", ScriptConstr 2)
     ]
 
-constructorArity (ScriptConstr arity) = arity
-constructorArity (SysConstr arity) = arity
+constructorArity (ScriptConstr _ arity _) = arity
+constructorArity (SysConstr _ arity) = arity
 
+createArgs [] = return []
+createArgs (a:aas) = return (show a)
 
-
+createFreeScript (ScriptConstr n a isRet) args = do
+    aas <- createArgs args
+    let scr next = "(" ++ n ++ " " ++ aas ++ next ++ ")"
+    return scr
+createFreeScript (SysConstr n a) args = do
+    aas <- createArgs args
+    let scr _ = "(" ++ n ++ " " ++ aas ++ ")"
+    return scr

@@ -84,17 +84,6 @@ runLIStatements (LinedIndentedStmt (IndentedStmt i stmt):stmts) = do
     assertIndentation (==i)
     runStatement stmt
 
-{-
-data Statement = ConstantStmt IdName Expr
-               | ValStmt IdName Expr
-               | CallStmt Expr
-               
-data Expr = ConstantExpr Constant
-          | ConstructorExpr Constructor
-          | IdentifierExpr Identifier
-  deriving (Show)
--}
-
 findScriptConstructor :: IdName -> ScriptType -> TranslatorSt (Maybe Constr)
 findScriptConstructor n st = do
     mbs <- use (tables . scripts . at st)
@@ -119,8 +108,9 @@ findConstructor n = do
          _ | isJust mbProc -> return mbProc
          _                 -> return Nothing
 
-translateArgs NoneArgs  = return []
-translateArgs (Args es) = mapM translateExpression es
+runArgs NoneArgs  = return []
+runArgs (Args es) = mapM runExpression es
+
 
 runValueStatement name expr = do
     print' $ "run value stmt" ++ name
@@ -133,28 +123,29 @@ runValueStatement name expr = do
 runScriptExpression :: Expr -> TranslatorSt Value
 runScriptExpression (ConstructorExpr c) = runConstructor c
 runScriptExpression (ConstantExpr c)    = runConstant c
-runScriptExpression _ = error "translateExpression"
+runScriptExpression _ = error "runScriptExpression"
 
 runConstant :: Constant -> TranslatorSt Value
 runConstant (StringConstant str) = return $ StringValue str
 runConstant (IntegerConstant i) = return $ IntValue i
-    
+
 runConstructor :: Constructor -> TranslatorSt Value
 runConstructor (Constructor n args) = do
     print' $ "run constructor " ++ n
     mbc <- findConstructor n
     assert (isJust mbc) "Not in scope: constructor" n
     let c = fromJust mbc
-    tas <- translateArgs args
+    tas <- runArgs args
     assert (length tas == constructorArity c) "wrong arity:" (length tas)
-    
+    scr <- createFreeScript (fromJust mbc) tas
+    print' $ "result: " ++ scr "<placeholder>"
     
     return $ StringValue ""
 
-translateExpression :: Expr -> TranslatorSt Value
-translateExpression (ConstructorExpr c) = runConstructor c
-translateExpression (ConstantExpr c)    = runConstant c
-translateExpression _ = error "translateExpression"
+runExpression :: Expr -> TranslatorSt Value
+runExpression (ConstructorExpr c) = runConstructor c
+runExpression (ConstantExpr c)    = runConstant c
+runExpression _ = error "runExpression"
 
 runStatement :: Statement -> TranslatorSt ()
 runStatement c@(ConstantStmt name expr) = do
