@@ -12,6 +12,7 @@ import Paths_Andromeda
 import Control.Lens hiding (getConst)
 import Control.Monad.Trans.State as S
 import Control.Monad
+import Control.Monad.IO.Class (liftIO)
 import qualified Data.Map as M
 import Data.Maybe
 
@@ -36,11 +37,18 @@ makeLenses ''Translator
 
 type TranslatorSt a = S.StateT Translator IO a
 
+print' :: String -> TranslatorSt ()
+print' s = liftIO $ print s
+
 enableScriptTranslation st = do
     assertNoScriptTranslation
     assign scriptTranslation (Just st)
 disableScriptTranslation = assign scriptTranslation Nothing
-
+isScriptTranslation :: TranslatorSt Bool
+isScriptTranslation = do
+    mbst <- use scriptTranslation
+    return $ isJust mbst
+    
 setIndentation n = assign indentation n
 incIndentation, decIndentation :: TranslatorSt ()
 incIndentation = indentation += 1
@@ -49,9 +57,9 @@ decIndentation = do
     indentation -= 1
 assertIndentation p = do
     i <- use indentation
-    when (not $ p i) $ error $ "Wrong indentation: " ++ show i
+    assert (p i) "wrong indentation:" i
 
-assert False n msg = error $ "Not in scope: " ++ msg ++ " " ++ show n
+assert False msg n = error $ msg ++ " " ++ show n
 assert _ _ _ = return ()    
     
 getConst :: IdName -> TranslatorSt (Maybe String)
@@ -59,27 +67,22 @@ getConst n = use (tables . constants . _2 . at n)
 
 assertNoScriptTranslation = do
     x <- use scriptTranslation
-    when (isJust x) $ error $ "Script translation: " ++ show x
+    assert (isNothing x) "script translation enabled:" x
 
 assertNotExistIn :: Lens' Tables Table  -> IdName -> TranslatorSt ()
 assertNotExistIn table key = do
     n <- use $ tables . table . _1
     x <- use $ tables . table . _2 . at key
-    when (isJust x) $ error $ n ++ " exist: " ++ key
+    assert (isNothing x) (" exist: " ++ key ++ " for ") n
     
 translateExpr = error "translateExpr"
 
 
-translateLIStatements [] = return ()
-translateLIStatements (LinedEmptyStmt:stmts) = translateLIStatements stmts
-translateLIStatements (LinedIndentedStmt (IndentedStmt i stmt):stmts) = do
+runLIStatements [] = return ()
+runLIStatements (LinedEmptyStmt:stmts) = runLIStatements stmts
+runLIStatements (LinedIndentedStmt (IndentedStmt i stmt):stmts) = do
     assertIndentation (==i)
-    translateStatement stmt
-
-translateProcedureDef (ProcDef (ProcDecl n params) (ProcBody stmts)) = do
-    setIndentation 1
-    translateLIStatements stmts
-
+    runStatement stmt
 
 {-
 data Statement = ConstantStmt IdName Expr
@@ -116,53 +119,76 @@ findConstructor n = do
          _ | isJust mbProc -> return mbProc
          _                 -> return Nothing
 
-translateArgs NoneArgs   = return []
-translateArgs (Args es) = do
-    r <- mapM translateExpression es
-    return []
+translateArgs NoneArgs  = return []
+translateArgs (Args es) = mapM translateExpression es
 
-runConstructor :: Constructor -> TranslatorSt ()
-runConstructor (Constructor n args) = do
-    mbc <- findConstructor n
-    assert (isJust mbc) n "constructor"
-    let c = fromJust mbc
-    tas <- translateArgs args
-    assert (length tas == constructorArity c) (length tas) "wrong arity"
+runValueStatement name expr = do
+    print' $ "run value stmt" ++ name
+    assertNotExistIn values name
+    r <- runScriptExpression expr
     
-    
+    error "TODO: runValueStatement"
     return ()
 
-translateExpression :: Expr -> TranslatorSt ()
-translateExpression (ConstructorExpr c) = do
-    runConstructor c
+runScriptExpression :: Expr -> TranslatorSt Value
+runScriptExpression (ConstructorExpr c) = runConstructor c
+runScriptExpression (ConstantExpr c)    = runConstant c
+runScriptExpression _ = error "translateExpression"
+
+runConstant :: Constant -> TranslatorSt Value
+runConstant (StringConstant str) = return $ StringValue str
+runConstant (IntegerConstant i) = return $ IntValue i
+    
+runConstructor :: Constructor -> TranslatorSt Value
+runConstructor (Constructor n args) = do
+    print' $ "run constructor " ++ n
+    mbc <- findConstructor n
+    assert (isJust mbc) "Not in scope: constructor" n
+    let c = fromJust mbc
+    tas <- translateArgs args
+    assert (length tas == constructorArity c) "wrong arity:" (length tas)
+    
+    
+    return $ StringValue ""
+
+translateExpression :: Expr -> TranslatorSt Value
+translateExpression (ConstructorExpr c) = runConstructor c
+translateExpression (ConstantExpr c)    = runConstant c
 translateExpression _ = error "translateExpression"
 
-translateStatement :: Statement -> TranslatorSt ()
-translateStatement c@(ConstantStmt name expr) = do
+runStatement :: Statement -> TranslatorSt ()
+runStatement c@(ConstantStmt name expr) = do
     assertNotExistIn constants name
-    error "translateStatement c@(ConstantStmt expr)"
-translateStatement c@(CallStmt expr) = do
-    error "translateStatement c@(CallStmt expr)"
+    error "runStatement c@(ConstantStmt expr)"
+runStatement c@(CallStmt expr) = do
+    error "runStatement c@(CallStmt expr)"
     
-translateStatement c@(ValStmt name expr) = do
-    assertNotExistIn values name
-    r <- translateExpression expr
+runStatement c@(ValStmt name expr) = do
+    r <- runValueStatement name expr
     
-    error $ "translateStatement c@(ValStmt expr)" ++ show r
-    
-    
+    error $ "runStatement c@(ValStmt expr)" ++ show r
+
+runProcedureDef (ProcDef (ProcDecl n params) (ProcBody stmts)) = do
+    print' $ "run procedure def: " ++ n
+    setIndentation 1
+    print' $ "indentation: 1"
+    runLIStatements stmts
+
 translateEntry :: ProgramEntry -> TranslatorSt ()
 translateEntry LinedEmptyEntry = return ()
-translateEntry (LinedEntry st) = translateStatement st
+translateEntry (LinedEntry st) = error "translateEntry (LinedEntry st)"
 translateEntry (ScriptEntry st pd) = do
+    print' $ "translate script entry: " ++ show st
     enableScriptTranslation st
-    translateProcedureDef pd
+    runProcedureDef pd
     disableScriptTranslation
 translateEntry _ = error "translateEntry"
 
 translateProgram :: Program -> TranslatorSt ()
 translateProgram (Program [])      = return ()
-translateProgram (Program entries) = mapM_ translateEntry entries
+translateProgram (Program entries) = do
+    print' $ "translate program"
+    mapM_ translateEntry entries
 
 fromAst :: Program -> TranslatorSt ()
 fromAst = translateProgram

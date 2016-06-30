@@ -31,12 +31,13 @@ fillScriptsTable = M.fromList
 fillSysConstructorsTable :: ConstructorsTable
 fillSysConstructorsTable = M.fromList
     [ ("Controller", SysConstr 1)
---    , ("Set", ScriptConstr 3)
+    , ("Command", SysConstr 2)
 --    , ("Read", ScriptConstr 3)
 --    , ("Run", ScriptConstr 2)
     ]
 
 constructorArity (ScriptConstr arity) = arity
+constructorArity (SysConstr arity) = arity
 
 
 
