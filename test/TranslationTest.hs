@@ -35,6 +35,8 @@ gesScriptTranslation = do
     assert b "Not script translation" ""
     mbst <- use scriptTranslation
     return $ fromJust mbst
+
+getUniqueNumber = uniqueNumber <+= 1
     
 setIndentation n = assign indentation n
 incIndentation, decIndentation :: TranslatorSt ()
@@ -109,7 +111,7 @@ runValueStatement name expr = do
     assertNotExistIn values name
     cr <- runScriptExpression expr
     decPrintIndentation
-    return cr
+    return $ ComposedVal name cr
 
 runScriptExpression :: Expr -> TranslatorSt Created
 runScriptExpression (ConstructorExpr c) = do
@@ -163,11 +165,12 @@ runStatement c@(ConstantStmt name expr) = do
     assertNotExistIn constants name
     error "runStatement c@(ConstantStmt expr)"
 runStatement c@(CallStmt expr) = do
-    error "runStatement c@(CallStmt expr)"
+    print' $ "runStatement CallStmt"
+    n <- getUniqueNumber
+    runValueStatement ("CallStmt_" ++ show n) expr
 runStatement c@(ValStmt name expr) = do
     print' $ "runStatement ValStmt " ++ name
-    created <- runValueStatement name expr
-    return $ ComposedVal name created
+    runValueStatement name expr
 
 runLIStatements [] = return []
 runLIStatements (LinedEmptyStmt:stmts) = runLIStatements stmts
@@ -177,17 +180,6 @@ runLIStatements (LinedIndentedStmt (IndentedStmt i stmt):stmts) = do
     composeds <- runLIStatements stmts
     return $ composed : composeds
 
-{-
-runControllerScriptResolving :: [Composed] -> TranslatorSt ScriptResolved
-runControllerScriptResolving [] = return NoneScriptResolved
-runControllerScriptResolving (ComposedVal n (CreatedControllerScript scr):rs) = do
-    next <- runControllerScriptResolving rs
-    case next of
-         NoneScriptResolved -> return $ ContrScriptResolved scr
-         ContrScriptResolved composedScr -> let scr' = scr >> composedScr
-                                            in return $ ContrScriptResolved scr'
-                                            -}
-                                            
 runControllerScriptResolving :: [Composed] -> ControllerScript ()
 runControllerScriptResolving [] = return ()
 runControllerScriptResolving (ComposedVal n (CreatedControllerScript scr):rs) = do
@@ -246,7 +238,7 @@ parseFromFile' f = do
          Right r -> return r
          
 emptyTables = Tables ("constant", M.empty) ("value", M.empty) fillScriptsDefsTable fillSysConstructorsTable M.empty
-emptySt = Translator emptyTables (return ()) Nothing 0 0
+emptySt = Translator emptyTables (return ()) Nothing 0 0 0
 
     
 test :: IO ()
@@ -255,7 +247,7 @@ test = do
     
     res <- parseFromFile' "controller_script_simple1.txt"
     print res >> print ""
-    (_, (Translator tables prog _ _ _)) <- S.runStateT (fromAst res) emptySt
+    (_, (Translator tables prog _ _ _ _)) <- S.runStateT (fromAst res) emptySt
     
     interpretControlProgram prog
     

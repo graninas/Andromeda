@@ -47,7 +47,6 @@ data Created where
 
 data Composed where
     ComposedVal :: IdName -> Created -> Composed
-    NoneComposed :: Composed -- dummy
     
 data ScriptResolved where
     ContrScriptResolved :: ControllerScript () -> ScriptResolved
@@ -69,6 +68,7 @@ data Translator = Translator {
     , _scriptTranslation :: Maybe ScriptType
     , _indentation :: Int
     , _printIndentation :: Int
+    , _uniqueNumber :: Int
 }
 
 makeLenses ''Tables
