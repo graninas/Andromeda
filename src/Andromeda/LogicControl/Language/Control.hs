@@ -3,7 +3,6 @@
 
 module Andromeda.LogicControl.Language.Control where
 
-import Andromeda.LogicControl.Language.Controller
 import Andromeda.LogicControl.Language.Script
 
 import Control.Monad.Trans.Free
@@ -17,8 +16,15 @@ instance Functor Control where
 
 type ControlProgram a = F.Free Control a
 
+class Monad m => ControlProgramInterpreter m where
+    onEvalScript :: Script a -> m a
+    
+interpretControlProgram :: (Monad m, ControlProgramInterpreter m) => ControlProgram a -> m a
+interpretControlProgram (F.Pure a) = return a
+interpretControlProgram (F.Free (EvalScript scr next)) = do
+    r <- onEvalScript scr
+    interpretControlProgram $ next r
+    
+    
 evalScript :: Script a -> ControlProgram a
 evalScript scr = F.liftF (EvalScript scr id)
-
-
-

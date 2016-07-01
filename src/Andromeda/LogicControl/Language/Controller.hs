@@ -6,7 +6,7 @@
 module Andromeda.LogicControl.Language.Controller where
 
 import Andromeda.Common
-import Andromeda.Hardware
+import Andromeda.Hardware hiding (interpret)
 import Andromeda.Calculations
 
 import Control.Monad.Free
@@ -36,6 +36,27 @@ instance Functor Procedure where
    
 type ControllerScript a = Free Procedure a
 
+class Monad m => ControllerScriptInterpreter m where
+    onGet  :: Controller -> Property -> m Value
+    onSet  :: Controller -> Property -> Value -> m ()
+    onRead :: forall tag. Controller -> ComponentIndex -> Parameter tag -> m (Measurement tag)
+    onRun  :: Controller -> Command -> m CommandResult
+    
+interpretControllerScript :: (Monad m, ControllerScriptInterpreter m) => ControllerScript a -> m a
+interpretControllerScript (Pure a) = return a
+interpretControllerScript (Free (Get c p next)) = do
+    v <- onGet c p
+    interpretControllerScript $ next v
+interpretControllerScript (Free (Set c p v next)) = do
+    onSet c p v
+    interpretControllerScript next
+interpretControllerScript (Free (Read c ci p next)) = do
+    v <- onRead c ci p
+    interpretControllerScript $ next v
+interpretControllerScript (Free (Run c cmd next)) = do
+    v <- onRun c cmd
+    interpretControllerScript $ next v
+    
 get :: Controller -> Property -> ControllerScript Value
 get c p = liftF (Get c p id)
 

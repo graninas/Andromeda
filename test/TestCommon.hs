@@ -1,5 +1,6 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 module TestCommon where
 
 import Andromeda
@@ -25,38 +26,21 @@ readTemperature controller idx = read controller idx temperature
 readPressure :: Controller -> ComponentIndex -> ControllerScript (Measurement Pascal)
 readPressure controller idx = read controller idx pressure
 
-interpretScript (ControllerScript scr)     = interpretControllerScript scr
-interpretScript (InfrastructureScript scr) = interpretInfrastructureScript scr
+type TestCPInterpreter = IO
 
-interpretInfrastructureScript (Pure a) = return a
-interpretInfrastructureScript (Free (SendTo r v next)) = do
-    print ("SendTo", v)
-    r v
-    interpretInfrastructureScript next
-interpretInfrastructureScript (Free (GetCurrentTime next)) = do
-    print "GetCurrentTime"
-    interpretInfrastructureScript (next 10)
+instance ControlProgramInterpreter TestCPInterpreter where
+    onEvalScript (ControllerScript scr)     = interpretControllerScript scr
+    onEvalScript (InfrastructureScript scr) = interpretInfrastructureScript scr
 
-interpretControllerScript (Pure a) = return a
-interpretControllerScript (Free (Get c p next)) = do
-    print ("Get", c, p)
-    interpretControllerScript (next (StringValue "ggg"))
-interpretControllerScript (Free (Set c p v next)) = do
-    print ("Get", c, p, v)
-    interpretControllerScript next
-interpretControllerScript (Free (Read c ci p next)) = do
-    print ("Read", c, ci, p)
-    interpretControllerScript (next (Measurement . FloatValue $ 33.3))
-interpretControllerScript (Free (Run c cmd next)) = do
-    print ("Run", c, cmd)
-    interpretControllerScript (next (Right "OK."))
+instance ControllerScriptInterpreter TestCPInterpreter where
+    onGet c p     = print ("Get", c, p)      >> return (StringValue "ggg")
+    onSet c p v   = print ("Set", c, p, v)
+    onRead c ci p = print ("Read", c, ci, p) >> return (Measurement . FloatValue $ 33.3)
+    onRun c cmd   = print ("Run", c, cmd)    >> return (Right "OK.")
     
-interpretControlProgram :: ControlProgram a -> IO a
-interpretControlProgram (Pure a) = return a
-interpretControlProgram (Free (EvalScript scr next)) = do
-    res <- interpretScript scr
-    interpretControlProgram (next res)
-    
+instance InfrastructureScriptInterpreter TestCPInterpreter where
+    onSendTo r v     = print ("SendTo", v)
+    onGetCurrentTime = print "GetCurrentTime" >> return 10
         
 nozzleTemerature, nozzlePressure, nozzle1T, nozzle2T, nozzle1P, nozzle2P :: ComponentIndex
 nozzleTemerature = "nozzle-t"

@@ -32,6 +32,6 @@ main = do
     --T7.test
     --T8.test
     --T9.test
-    --T10.test
-    T11.test
+    T10.test
+    --T11.test
     

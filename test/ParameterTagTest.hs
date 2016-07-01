@@ -12,4 +12,5 @@ sendTemperature controller = do
     p <- untag $ readPressure controller nozzle1P
     return (t, p)
 
+test :: TestCPInterpreter (Measurement Kelvin, a)
 test = interpretControllerScript (sendTemperature boostersController)

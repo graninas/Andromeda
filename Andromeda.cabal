@@ -57,6 +57,7 @@ library
                        Andromeda.Language.External.LogicControl.Parser,
                        Andromeda.Language.External.LogicControl.AST,
                        Andromeda.Language.External.LogicControl.Translator,
+                       Andromeda.Language.External.LogicControl.Interpreter,
                        
                        Andromeda.Assets,
                        Andromeda.Assets.Hardware.Components

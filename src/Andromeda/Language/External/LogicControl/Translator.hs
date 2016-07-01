@@ -1,13 +1,13 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE ImpredicativeTypes #-}
 {-# LANGUAGE GADTs #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE TypeSynonymInstances #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
+--{-# LANGUAGE ExistentialQuantification #-}
+--{-# LANGUAGE FlexibleContexts #-}
+--{-# LANGUAGE Rank2Types #-}
+--{-# LANGUAGE ImpredicativeTypes #-}
+--{-# LANGUAGE TypeFamilies #-}
+--{-# LANGUAGE TypeSynonymInstances #-}
+--{-# LANGUAGE FlexibleInstances #-}
+--{-# LANGUAGE MultiParamTypeClasses #-}
 
 module Andromeda.Language.External.LogicControl.Translator where
 

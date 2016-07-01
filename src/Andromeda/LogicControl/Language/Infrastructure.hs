@@ -4,7 +4,7 @@
 module Andromeda.LogicControl.Language.Infrastructure where
 
 import Andromeda.Common
-import Andromeda.Hardware
+import Andromeda.Hardware hiding (interpret)
 import Andromeda.Calculations
 
 import Control.Monad.Free
@@ -23,6 +23,19 @@ data Action a = --StoreReading Reading a
 
 type InfrastructureScript a = Free Action a
 
+class Monad m => InfrastructureScriptInterpreter m where
+    onSendTo :: Receiver -> Value -> m ()
+    onGetCurrentTime :: m Time
+    
+interpretInfrastructureScript :: (Monad m, InfrastructureScriptInterpreter m) => InfrastructureScript a -> m a
+interpretInfrastructureScript (Pure a) = return a
+interpretInfrastructureScript (Free (SendTo r v next)) = do
+    onSendTo r v
+    interpretInfrastructureScript next
+interpretInfrastructureScript (Free (GetCurrentTime next)) = do
+    t <- onGetCurrentTime
+    interpretInfrastructureScript $ next t
+    
 --storeReading :: Reading -> InfrastructureScript ()
 --storeReading reading = liftF $ StoreReading reading ()
 
@@ -31,5 +44,6 @@ sendTo r v = liftF (SendTo r v ())
 
 getCurrentTime :: InfrastructureScript Time
 getCurrentTime = liftF (GetCurrentTime id)
+
 
 

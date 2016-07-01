@@ -43,5 +43,5 @@ logMsg = sendTo logReceiver . StringValue
 alarm :: String -> InfrastructureScript ()
 alarm = sendTo alarmReceiver . StringValue
 
-    
+test :: TestCPInterpreter ()
 test = interpretControlProgram controlProgram
