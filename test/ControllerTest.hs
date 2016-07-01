@@ -24,10 +24,10 @@ logMessage severity str = do
     evalScript (infrastructureScript (logMsg msg))
     
 startBoosters :: ControllerScript CommandResult
-startBoosters = run (Controller "boosters") (Command "start" Nothing)
+startBoosters = run (Controller "boosters") (Command "start")
 
 startRotaryEngines :: ControllerScript CommandResult
-startRotaryEngines = run (Controller "rotary engines") (Command "start"  Nothing)
+startRotaryEngines = run (Controller "rotary engines") (Command "start")
 
 checkResult :: CommandResult -> ControlProgram ()
 checkResult (Left failed) = do

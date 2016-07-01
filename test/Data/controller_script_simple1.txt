@@ -1,4 +1,4 @@
 [ControllerScript] BoostersProgram:
-    val result1 = Run (Controller ("boosters"), Command ("start", Nothing))
-    val result2 = Run (Controller ("boosters"), Command ("stop", Nothing))
+    val result1 = Run (Controller ("boosters"), Command ("start"))
+    val result2 = Run (Controller ("boosters"), Command ("stop"))
 

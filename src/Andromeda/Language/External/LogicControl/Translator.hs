@@ -4,11 +4,16 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE ImpredicativeTypes #-}
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 module Andromeda.Language.External.LogicControl.Translator where
 
 import Andromeda.Common
-import Andromeda.LogicControl as LC
+import Andromeda.LogicControl as LC hiding (read)
+import qualified Andromeda.LogicControl as LC (read)
 import Andromeda.Language.External.LogicControl.AST
 
 import Control.Lens hiding (getConst)
@@ -21,7 +26,7 @@ import Data.Maybe
 type Arity = Int
 data Constr where
     ContrScriptConstr :: String -> Arity  -> Creator (ControllerScript a) -> Constr
-    SysConstr :: String -> Arity -> Constr
+    SysConstr :: (Show a, Read a) => String -> Arity -> Creator a -> Constr
   
 type ConstructorsTable = M.Map String Constr
 type ScriptsTable = M.Map ScriptType ConstructorsTable
@@ -34,7 +39,11 @@ data Creator scr where
    Arity2Cr :: (Read arg1, Read arg2) => (arg1 -> arg2 -> scr) -> Creator scr
    Arity3Cr :: (Read arg1, Read arg2, Read arg3) => (arg1 -> arg2 -> arg3 -> scr) -> Creator scr
 
-data Created = forall a. ContrScriptCreated (ControllerScript a)
+data Created where
+    CreatedConstrScript :: forall a. (ControllerScript a) -> Created
+    CreatedConstr :: forall a. a -> Created
+    CreatedConst :: Constant -> Created
+    CreatedArgs :: [Created] -> Created
 
 type Table = (String, M.Map String String)
 
@@ -58,12 +67,15 @@ makeLenses ''Translator
 
 type TranslatorSt a = S.StateT Translator IO a
 
+incPrintIndentation, decPrintIndentation :: TranslatorSt ()
+incPrintIndentation = printIndentation += 1
+decPrintIndentation = printIndentation -= 1
+
 print' :: String -> TranslatorSt ()
 print' s = do
     i <- use printIndentation
     liftIO $ putStr $ replicate (i * 4) ' '
     liftIO $ putStrLn s
-
 
 fillControllerScriptConstrs :: ConstructorsTable
 fillControllerScriptConstrs = M.fromList
@@ -80,37 +92,59 @@ fillScriptsTable = M.fromList
 
 fillSysConstructorsTable :: ConstructorsTable
 fillSysConstructorsTable = M.fromList
-    [ ("Controller", SysConstr "Controller" 1)
-    , ("Command",    SysConstr "Command"    2)
-    , ("Nothing",    SysConstr "Nothing"    0)
+    [ ("Controller", SysConstr "Controller" 1 (Arity1Cr Controller))
+    , ("Command",    SysConstr "Command"    1 (Arity1Cr Command))
     ]
 
 constructorArity (ContrScriptConstr _ arity _) = arity
-constructorArity (SysConstr _ arity) = arity
+constructorArity (SysConstr _ arity _) = arity
 
-createArgs [] = return []
-createArgs (a:aas) = return ("(" ++ show a ++ ")")
+printCreated (CreatedConstr a) = do
+    print' $ "Created Constr "
+printCreated (CreatedConstrScript a) = do
+    print' $ "Created Constr Script "
+printCreated (CreatedConst c) = do
+    print' $ "Created const: "
+    incPrintIndentation
+    print' $ show c
+    decPrintIndentation
+printCreated (CreatedArgs []) = print' $ "Created args: none"
+printCreated (CreatedArgs args) = do
+    print' $ "Created args: "
+    incPrintIndentation
+    mapM_ printCreated args
+    decPrintIndentation
 
-toArg (StringValue str) = Prelude.read str
+    
 
+toArg = undefined
 
-feedControllerScript :: Creator (ControllerScript a) -> [Value] -> Created
-feedControllerScript (Arity0Cr cr) []            = ContrScriptCreated $ cr
-feedControllerScript (Arity1Cr cr) (a1:[])       = ContrScriptCreated $ cr (toArg a1)
-feedControllerScript (Arity2Cr cr) (a1:a2:[])    = ContrScriptCreated $ cr (toArg a1) (toArg a2)
-feedControllerScript (Arity3Cr cr) (a1:a2:a3:[]) = ContrScriptCreated $ cr (toArg a1) (toArg a2) (toArg a3)
-feedControllerScript _ _ = error "feedControllerScript"
+feedControllerCreator :: Creator (ControllerScript a) -> [Created] -> Created
+feedControllerCreator (Arity0Cr cr) []            = CreatedConstrScript $ cr
+feedControllerCreator (Arity1Cr cr) (a1:[])       = CreatedConstrScript $ cr (toArg a1)
+feedControllerCreator (Arity2Cr cr) (a1:a2:[])    = CreatedConstrScript $ cr (toArg a1) (toArg a2)
+feedControllerCreator (Arity3Cr cr) (a1:a2:a3:[]) = CreatedConstrScript $ cr (toArg a1) (toArg a2) (toArg a3)
+feedControllerCreator _ _ = error "feedControllerCreator"
 
-createFreeScript _ (ContrScriptConstr n a cr) args = do
-    print' $ "createFreeScript ContrScriptConstr " ++ n
-    aas <- createArgs args
-    print' $ "args: " ++ show aas
-    let c = feedControllerScript cr args    
-    error "createFreeScript"
+feedCreator :: Creator a -> [String] -> a
+feedCreator (Arity0Cr cr) []            = cr
+feedCreator (Arity1Cr cr) (a1:[])       = cr (read a1)
+feedCreator (Arity2Cr cr) (a1:a2:[])    = cr (read a1) (read a2)
+feedCreator (Arity3Cr cr) (a1:a2:a3:[]) = cr (read a1) (read a2) (read a3)
+feedCreator _ _ = error "feedCreator"
+
+createArg (CreatedConst (StringConstant str)) = show str
+createArg (CreatedConst (IntegerConstant i))  = show i
+
+createConstructor _ (ContrScriptConstr n a cr) ca@(CreatedArgs args) = do
+    print' $ "createConstructor ContrScriptConstr " ++ n
+    printCreated ca
+    return $ feedControllerCreator cr args
+createConstructor _ (SysConstr n a cr) ca@(CreatedArgs args) = do
+    print' $ "createConstructor SysConstr " ++ n
+    printCreated ca
+    let aas = map createArg args
+    let c = feedCreator cr aas
+    print' $ "constructor created: " ++ show c
    
-createFreeScript _ (SysConstr n a) args = do
-    print' $ "createFreeScript SysConstr " ++ n
-    aas <- createArgs args
-    print' $ "args: " ++ show aas    
-    let scr _ = "(" ++ n ++ " " ++ aas ++ ")"
-    return scr
+    error "createConstructor"

@@ -15,7 +15,7 @@ import Prelude hiding (read)
 -- Dummy types, should be designed later
 data Property = Time | Status
   deriving (Show, Read, Eq)
-data Command = Command String (Maybe Value)
+data Command = Command String
   deriving (Show, Read, Eq)
 newtype Controller = Controller String
   deriving (Show, Read, Eq)

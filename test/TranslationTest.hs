@@ -2,6 +2,12 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE ImpredicativeTypes #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 module TranslationTest where
 
 import Andromeda
@@ -39,10 +45,6 @@ decIndentation = do
 assertIndentation p = do
     i <- use indentation
     assert (p i) "wrong indentation:" i
-
-incPrintIndentation, decPrintIndentation :: TranslatorSt ()
-incPrintIndentation = printIndentation += 1
-decPrintIndentation = printIndentation -= 1
     
 assert False msg n = error $ msg ++ " " ++ show n
 assert _ _ _ = return ()    
@@ -93,28 +95,27 @@ findConstructor n = do
          _ | isJust mbProc -> return mbProc
          _                 -> return Nothing
 
-runArgs NoneArgs  = return []
+runArgs :: ArgDef -> TranslatorSt Created
+runArgs NoneArgs  = return $ CreatedArgs []
 runArgs (Args es) = do
     print' $ "runArgs"
     incPrintIndentation
-    
     r <- mapM runExpression es
-    
     decPrintIndentation
-    return r
+    return $ CreatedArgs r
 
 runValueStatement name expr = do
     print' $ "runValueStatement " ++ name
     incPrintIndentation
     
     assertNotExistIn values name
-    r <- runScriptExpression expr
+    cr <- runScriptExpression expr
     
     decPrintIndentation
     error "TODO: runValueStatement"
     return ()
 
-runScriptExpression :: Expr -> TranslatorSt Value
+runScriptExpression :: Expr -> TranslatorSt Created
 runScriptExpression (ConstructorExpr c) = do
     print' $ "runScriptExpression ConstructorExpr"
     runConstructor c
@@ -123,15 +124,12 @@ runScriptExpression (ConstantExpr c) = do
     runConstant c
 runScriptExpression _ = error "runScriptExpression"
 
-runConstant :: Constant -> TranslatorSt Value
-runConstant (StringConstant str) = do
-    print' $ "runConstant StringConstant" ++ str
-    return $ StringValue str
-runConstant (IntegerConstant i) = do
-    print' $ "runConstant IntegerConstant" ++ show i
-    return $ IntValue i
+runConstant :: Constant -> TranslatorSt Created
+runConstant c = do
+    print' $ "runConstant " ++ show c
+    return $ CreatedConst c
 
-runConstructor :: Constructor -> TranslatorSt Value
+runConstructor :: Constructor -> TranslatorSt Created
 runConstructor (Constructor n args) = do
     print' $ "runConstructor " ++ n
     incPrintIndentation
@@ -140,15 +138,14 @@ runConstructor (Constructor n args) = do
     mbc <- findConstructor n
     assert (isJust mbc) "Not in scope: constructor" n
     let c = fromJust mbc
-    tas <- runArgs args
+    crtas@(CreatedArgs tas) <- runArgs args
     assert (length tas == constructorArity c) "wrong arity:" (length tas)
-    scr <- createFreeScript st (fromJust mbc) tas
-    print' $ "result: " ++ scr "<placeholder>"
-    
-    decPrintIndentation
-    return $ StringValue ""
+    created <- createConstructor st (fromJust mbc) crtas
 
-runExpression :: Expr -> TranslatorSt Value
+    decPrintIndentation
+    return $ created
+
+runExpression :: Expr -> TranslatorSt Created
 runExpression (ConstructorExpr c) = do
     print' $ "runExpression ConstructorExpr"
     runConstructor c
@@ -211,10 +208,11 @@ parseFromFile' f = do
 emptyTables = Tables ("constant", M.empty) ("value", M.empty) fillScriptsTable fillSysConstructorsTable
 emptySt = Translator emptyTables (return ()) Nothing 0 0
 
+    
 test :: IO ()
 test = do
     print "Translation test."
-
+    
     res <- parseFromFile' "controller_script_simple1.txt"
     print res >> print ""
     (_, (Translator tables prog _ _ _)) <- S.runStateT (fromAst res) emptySt

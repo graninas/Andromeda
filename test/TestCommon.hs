@@ -9,9 +9,9 @@ import Control.Monad.Free
 
 boostersController = Controller "Boosters"
 
-start   = Command "start" Nothing
-stop    = Command "stop" Nothing
-power f = Command "power" (Just $ floatValue f)
+start   = Command "start"
+stop    = Command "stop"
+power f = Command "power" -- (Just $ floatValue f)
 
 logReceiver :: Receiver
 logReceiver = \v -> print v
