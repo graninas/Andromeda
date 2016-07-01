@@ -40,11 +40,14 @@ data Creator scr where
    Arity3Cr :: (Read arg1, Read arg2, Read arg3) => (arg1 -> arg2 -> arg3 -> scr) -> Creator scr
 
 data Created where
-    CreatedConstrScript :: Show a => (ControllerScript a) -> Created
+    CreatedControllerScript :: Show a => (ControllerScript a) -> Created
     CreatedConstr :: (Read a, Show a) => a -> Created
     CreatedConst :: Constant -> Created
     CreatedArgs :: [Created] -> Created
 
+data Composed where
+    ComposedVal :: IdName -> Created -> Composed
+    
 type Table = (String, M.Map String String)
 
 data Tables = Tables {
@@ -101,7 +104,7 @@ constructorArity (SysConstr _ arity _) = arity
 
 printCreated (CreatedConstr a) = do
     print' $ "Created Constr "
-printCreated (CreatedConstrScript a) = do
+printCreated (CreatedControllerScript a) = do
     print' $ "Created Constr Script "
 printCreated (CreatedConst c) = do
     print' $ "Created const: "
@@ -138,7 +141,7 @@ createConstructor _ (ContrScriptConstr n a cr) ca@(CreatedArgs args) = do
     printCreated ca
     let aas = map createArg args
     let scr = feedControllerCreator cr aas
-    return $ CreatedConstrScript scr
+    return $ CreatedControllerScript scr
     
 createConstructor _ (SysConstr n a cr) ca@(CreatedArgs args) = do
     print' $ "createConstructor SysConstr " ++ n

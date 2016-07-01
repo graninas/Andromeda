@@ -65,12 +65,6 @@ assertNotExistIn table key = do
 translateExpr = error "translateExpr"
 
 
-runLIStatements [] = return ()
-runLIStatements (LinedEmptyStmt:stmts) = runLIStatements stmts
-runLIStatements (LinedIndentedStmt (IndentedStmt i stmt):stmts) = do
-    assertIndentation (==i)
-    runStatement stmt
-
 findScriptConstructor :: IdName -> ScriptType -> TranslatorSt (Maybe Constr)
 findScriptConstructor n st = do
     mbs <- use (tables . scripts . at st)
@@ -107,13 +101,10 @@ runArgs (Args es) = do
 runValueStatement name expr = do
     print' $ "runValueStatement " ++ name
     incPrintIndentation
-    
     assertNotExistIn values name
     cr <- runScriptExpression expr
-    
     decPrintIndentation
-    error "TODO: runValueStatement"
-    return ()
+    return cr
 
 runScriptExpression :: Expr -> TranslatorSt Created
 runScriptExpression (ConstructorExpr c) = do
@@ -142,12 +133,13 @@ runConstructor (Constructor n args) = do
     assert (length tas == constructorArity c) "wrong arity:" (length tas)
     created <- createConstructor st (fromJust mbc) crtas
     case created of
-         CreatedConstrScript scr -> do
-             print' $ "--> script created: "
+         CreatedControllerScript scr -> do
+             print' $ "--> controller script created: "
              res <- liftIO $ interpretControllerScript scr
              print' $ "--> script interpreter result: " ++ show res
          CreatedConstr c -> do
              print' $ "--> constructor created: " ++ show c
+             
     decPrintIndentation
     return $ created
 
@@ -160,25 +152,37 @@ runExpression (ConstantExpr c) = do
     runConstant c
 runExpression _ = error "runExpression"
 
-runStatement :: Statement -> TranslatorSt ()
+runStatement :: Statement -> TranslatorSt Composed
 runStatement c@(ConstantStmt name expr) = do
     print' $ "runStatement ConstantStmt " ++ name
     assertNotExistIn constants name
     error "runStatement c@(ConstantStmt expr)"
 runStatement c@(CallStmt expr) = do
     error "runStatement c@(CallStmt expr)"
-    
 runStatement c@(ValStmt name expr) = do
     print' $ "runStatement ValStmt " ++ name
-    r <- runValueStatement name expr
-    
-    error $ "runStatement c@(ValStmt expr)" ++ show r
+    created <- runValueStatement name expr
+    return $ ComposedVal name created
 
+runLIStatements [] = return []
+runLIStatements (LinedEmptyStmt:stmts) = runLIStatements stmts
+runLIStatements (LinedIndentedStmt (IndentedStmt i stmt):stmts) = do
+    assertIndentation (==i)
+    composed <- runStatement stmt
+    composeds <- runLIStatements stmts
+    return $ composed : composeds
+
+runResolving [] = return ()
+runResolving _ = error "runResolving"
+    
+    
 runProcedureDef (ProcDef (ProcDecl n params) (ProcBody stmts)) = do
     print' $ "runProcedureDef: " ++ n
     setIndentation 1
     print' $ "indentation: 1"
-    runLIStatements stmts
+    composeds <- runLIStatements stmts
+    resolved <- runResolving composeds
+    return ()
 
 translateEntry :: ProgramEntry -> TranslatorSt ()
 translateEntry LinedEmptyEntry = return ()
