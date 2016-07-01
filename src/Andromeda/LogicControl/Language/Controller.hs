@@ -1,5 +1,7 @@
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE ExistentialQuantification #-}
 
 module Andromeda.LogicControl.Language.Controller where
 
@@ -20,17 +22,19 @@ newtype Controller = Controller String
 type CommandResult = Either String String
 
 -- TODO: rework ComponentIndex, ValueSource and relations with HDL.
-data Procedure tag a
+data Procedure a
     = Get Controller Property (Value -> a)
     | Set Controller Property Value a
-    | Read Controller ComponentIndex (Parameter tag) (Measurement tag -> a)
+    | forall tag. Read Controller ComponentIndex (Parameter tag) (Measurement tag -> a)
     | Run Controller Command (CommandResult -> a)
-  deriving (Functor)
 
-type ControllerScriptT tag a = Free (Procedure tag) a
-type ControllerScriptM tag = ControllerScriptT tag (Measurement tag)
-type ControllerScriptV a = ControllerScriptT () a
-type ControllerScript a = forall tag. ControllerScriptT tag a
+instance Functor Procedure where
+    fmap g (Get c p f)      = (Get c p     (g . f))
+    fmap g (Set c p v next) = (Set c p v   (g next))
+    fmap g (Read c ci p f)  = (Read c ci p (g . f))
+    fmap g (Run c cmd f)    = (Run c cmd   (g . f))
+
+type ControllerScript a = Free Procedure a
 
 get :: Controller -> Property -> ControllerScript Value
 get c p = liftF (Get c p id)
@@ -38,7 +42,7 @@ get c p = liftF (Get c p id)
 set :: Controller -> Property -> Value -> ControllerScript ()
 set c p v = liftF (Set c p v ())
 
-read :: Controller -> ComponentIndex -> Parameter tag -> ControllerScriptM tag
+read :: forall tag. Controller -> ComponentIndex -> Parameter tag -> ControllerScript (Measurement tag)
 read c idx p = liftF (Read c idx p id)
 
 run :: Controller -> Command -> ControllerScript CommandResult

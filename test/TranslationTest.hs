@@ -2,7 +2,6 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE BangPatterns #-}
 module TranslationTest where
 
 import Andromeda
@@ -48,6 +47,11 @@ isScriptTranslation :: TranslatorSt Bool
 isScriptTranslation = do
     mbst <- use scriptTranslation
     return $ isJust mbst
+gesScriptTranslation = do
+    b <- isScriptTranslation
+    assert b "Not script translation" ""
+    mbst <- use scriptTranslation
+    return $ fromJust mbst
     
 setIndentation n = assign indentation n
 incIndentation, decIndentation :: TranslatorSt ()
@@ -132,12 +136,13 @@ runConstant (IntegerConstant i) = return $ IntValue i
 runConstructor :: Constructor -> TranslatorSt Value
 runConstructor (Constructor n args) = do
     print' $ "run constructor " ++ n
+    st <- gesScriptTranslation
     mbc <- findConstructor n
     assert (isJust mbc) "Not in scope: constructor" n
     let c = fromJust mbc
     tas <- runArgs args
     assert (length tas == constructorArity c) "wrong arity:" (length tas)
-    scr <- createFreeScript (fromJust mbc) tas
+    scr <- createFreeScript st (fromJust mbc) tas
     print' $ "result: " ++ scr "<placeholder>"
     
     return $ StringValue ""

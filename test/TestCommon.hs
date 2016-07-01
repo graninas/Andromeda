@@ -19,16 +19,11 @@ logReceiver = \v -> print v
 alarmReceiver :: Receiver
 alarmReceiver = \v -> print ("WARNING!", v)
 
-readTemperature :: Controller -> ComponentIndex -> ControllerScriptT Kelvin Float
-readTemperature controller idx = do
-    t <- read controller idx temperature
-    return $ fromKelvin t
+readTemperature :: Controller -> ComponentIndex -> ControllerScript (Measurement Kelvin)
+readTemperature controller idx = read controller idx temperature
 
-readPressure :: Controller -> ComponentIndex -> ControllerScriptT Pascal Float
-readPressure controller idx = do
-    t <- read controller idx pressure
-    return $ fromPascal t
-
+readPressure :: Controller -> ComponentIndex -> ControllerScript (Measurement Pascal)
+readPressure controller idx = read controller idx pressure
 
 interpretScript (ControllerScript scr)     = interpretControllerScript scr
 interpretScript (InfrastructureScript scr) = interpretInfrastructureScript scr
