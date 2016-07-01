@@ -11,12 +11,16 @@ import Andromeda.Common
 import Andromeda.LogicControl as LC
 import Andromeda.Language.External.LogicControl.AST
 
+import Control.Lens hiding (getConst)
+import Control.Monad.Trans.State as S
+import Control.Monad
+import Control.Monad.IO.Class (liftIO)
 import qualified Data.Map as M
+import Data.Maybe
 
 type Arity = Int
-type IsRet = Bool
 data Constr where
-    ContrScriptConstr :: String -> Arity -> IsRet -> Creator (ControllerScript a) -> Constr
+    ContrScriptConstr :: String -> Arity  -> Creator (ControllerScript a) -> Constr
     SysConstr :: String -> Arity -> Constr
   
 type ConstructorsTable = M.Map String Constr
@@ -32,15 +36,41 @@ data Creator scr where
 
 data Created = forall a. ContrScriptCreated (ControllerScript a)
 
-ret = True
-nret = False
+type Table = (String, M.Map String String)
+
+data Tables = Tables {
+      _constants :: Table
+    , _values :: Table
+    , _scripts :: ScriptsTable
+    , _sysConstructors :: SysConstructorsTable
+}
+
+data Translator = Translator {
+      _tables :: Tables
+    , _controlProg :: ControlProgram ()
+    , _scriptTranslation :: Maybe ScriptType
+    , _indentation :: Int
+    , _printIndentation :: Int
+}
+
+makeLenses ''Tables
+makeLenses ''Translator
+
+type TranslatorSt a = S.StateT Translator IO a
+
+print' :: String -> TranslatorSt ()
+print' s = do
+    i <- use printIndentation
+    liftIO $ putStr $ replicate (i * 4) ' '
+    liftIO $ print s
+
 
 fillControllerScriptConstrs :: ConstructorsTable
 fillControllerScriptConstrs = M.fromList
-    [ ("Get",  ContrScriptConstr "Get"  2 ret  (Arity2Cr LC.get))
-    , ("Set",  ContrScriptConstr "Set"  3 nret (Arity3Cr LC.set))
-    , ("Read", ContrScriptConstr "Read" 3 ret  (Arity3Cr LC.read))
-    , ("Run",  ContrScriptConstr "Run"  2 ret  (Arity2Cr LC.run))
+    [ ("Get",  ContrScriptConstr "Get"  2 (Arity2Cr LC.get))
+    , ("Set",  ContrScriptConstr "Set"  3 (Arity3Cr LC.set))
+    , ("Read", ContrScriptConstr "Read" 3 (Arity3Cr LC.read))
+    , ("Run",  ContrScriptConstr "Run"  2 (Arity2Cr LC.run))
     ]
 
 fillScriptsTable :: ScriptsTable
@@ -55,11 +85,11 @@ fillSysConstructorsTable = M.fromList
     , ("Nothing",    SysConstr "Nothing"    0)
     ]
 
-constructorArity (ContrScriptConstr _ arity _ _) = arity
+constructorArity (ContrScriptConstr _ arity _) = arity
 constructorArity (SysConstr _ arity) = arity
 
 createArgs [] = return []
-createArgs (a:aas) = return (show a)
+createArgs (a:aas) = return ("(" ++ show a ++ ")")
 
 toArg (StringValue str) = Prelude.read str
 
@@ -71,14 +101,16 @@ feedControllerScript (Arity2Cr cr) (a1:a2:[])    = ContrScriptCreated $ cr (toAr
 feedControllerScript (Arity3Cr cr) (a1:a2:a3:[]) = ContrScriptCreated $ cr (toArg a1) (toArg a2) (toArg a3)
 feedControllerScript _ _ = error "feedControllerScript"
 
-createFreeScript _ (ContrScriptConstr n a isRet cr) args = do
+createFreeScript _ (ContrScriptConstr n a cr) args = do
+    print' $ "createFreeScript ContrScriptConstr " ++ n
     aas <- createArgs args
+    print' $ "args: " ++ show aas
     let c = feedControllerScript cr args    
     error "createFreeScript"
    
 createFreeScript _ (SysConstr n a) args = do
+    print' $ "createFreeScript SysConstr " ++ n
     aas <- createArgs args
-    
-    
+    print' $ "args: " ++ show aas    
     let scr _ = "(" ++ n ++ " " ++ aas ++ ")"
     return scr

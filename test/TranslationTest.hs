@@ -15,29 +15,6 @@ import Control.Monad.IO.Class (liftIO)
 import qualified Data.Map as M
 import Data.Maybe
 
-type Table = (String, M.Map String String)
-
-data Tables = Tables {
-      _constants :: Table
-    , _values :: Table
-    , _scripts :: ScriptsTable
-    , _sysConstructors :: SysConstructorsTable
-}
-
-data Translator = Translator {
-      _tables :: Tables
-    , _controlProg :: ControlProgram ()
-    , _scriptTranslation :: Maybe ScriptType
-    , _indentation :: Int
-}
-
-makeLenses ''Tables
-makeLenses ''Translator
-
-type TranslatorSt a = S.StateT Translator IO a
-
-print' :: String -> TranslatorSt ()
-print' s = liftIO $ print s
 
 enableScriptTranslation st = do
     assertNoScriptTranslation
@@ -63,6 +40,10 @@ assertIndentation p = do
     i <- use indentation
     assert (p i) "wrong indentation:" i
 
+incPrintIndentation, decPrintIndentation :: TranslatorSt ()
+incPrintIndentation = printIndentation += 1
+decPrintIndentation = printIndentation -= 1
+    
 assert False msg n = error $ msg ++ " " ++ show n
 assert _ _ _ = return ()    
     
@@ -113,29 +94,48 @@ findConstructor n = do
          _                 -> return Nothing
 
 runArgs NoneArgs  = return []
-runArgs (Args es) = mapM runExpression es
-
+runArgs (Args es) = do
+    print' $ "runArgs"
+    incPrintIndentation
+    
+    r <- mapM runExpression es
+    
+    decPrintIndentation
+    return r
 
 runValueStatement name expr = do
-    print' $ "run value stmt" ++ name
+    print' $ "runValueStatement " ++ name
+    incPrintIndentation
+    
     assertNotExistIn values name
     r <- runScriptExpression expr
     
+    decPrintIndentation
     error "TODO: runValueStatement"
     return ()
 
 runScriptExpression :: Expr -> TranslatorSt Value
-runScriptExpression (ConstructorExpr c) = runConstructor c
-runScriptExpression (ConstantExpr c)    = runConstant c
+runScriptExpression (ConstructorExpr c) = do
+    print' $ "runScriptExpression ConstructorExpr"
+    runConstructor c
+runScriptExpression (ConstantExpr c) = do
+    print' $ "runScriptExpression ConstantExpr"
+    runConstant c
 runScriptExpression _ = error "runScriptExpression"
 
 runConstant :: Constant -> TranslatorSt Value
-runConstant (StringConstant str) = return $ StringValue str
-runConstant (IntegerConstant i) = return $ IntValue i
+runConstant (StringConstant str) = do
+    print' $ "runConstant StringConstant" ++ str
+    return $ StringValue str
+runConstant (IntegerConstant i) = do
+    print' $ "runConstant IntegerConstant" ++ show i
+    return $ IntValue i
 
 runConstructor :: Constructor -> TranslatorSt Value
 runConstructor (Constructor n args) = do
-    print' $ "run constructor " ++ n
+    print' $ "runConstructor " ++ n
+    incPrintIndentation
+    
     st <- gesScriptTranslation
     mbc <- findConstructor n
     assert (isJust mbc) "Not in scope: constructor" n
@@ -145,45 +145,54 @@ runConstructor (Constructor n args) = do
     scr <- createFreeScript st (fromJust mbc) tas
     print' $ "result: " ++ scr "<placeholder>"
     
+    decPrintIndentation
     return $ StringValue ""
 
 runExpression :: Expr -> TranslatorSt Value
-runExpression (ConstructorExpr c) = runConstructor c
-runExpression (ConstantExpr c)    = runConstant c
+runExpression (ConstructorExpr c) = do
+    print' $ "runExpression ConstructorExpr"
+    runConstructor c
+runExpression (ConstantExpr c) = do
+    print' $ "runExpression ConstantExpr"
+    runConstant c
 runExpression _ = error "runExpression"
 
 runStatement :: Statement -> TranslatorSt ()
 runStatement c@(ConstantStmt name expr) = do
+    print' $ "runStatement ConstantStmt " ++ name
     assertNotExistIn constants name
     error "runStatement c@(ConstantStmt expr)"
 runStatement c@(CallStmt expr) = do
     error "runStatement c@(CallStmt expr)"
     
 runStatement c@(ValStmt name expr) = do
+    print' $ "runStatement ValStmt " ++ name
     r <- runValueStatement name expr
     
     error $ "runStatement c@(ValStmt expr)" ++ show r
 
 runProcedureDef (ProcDef (ProcDecl n params) (ProcBody stmts)) = do
-    print' $ "run procedure def: " ++ n
+    print' $ "runProcedureDef: " ++ n
     setIndentation 1
     print' $ "indentation: 1"
     runLIStatements stmts
 
 translateEntry :: ProgramEntry -> TranslatorSt ()
 translateEntry LinedEmptyEntry = return ()
-translateEntry (LinedEntry st) = error "translateEntry (LinedEntry st)"
+translateEntry (LinedEntry st) = error "translateEntry LinedEntry"
 translateEntry (ScriptEntry st pd) = do
-    print' $ "translate script entry: " ++ show st
+    print' $ "translateEntry ScriptEntry" ++ show st
+    incPrintIndentation
     enableScriptTranslation st
     runProcedureDef pd
     disableScriptTranslation
+    decPrintIndentation
 translateEntry _ = error "translateEntry"
 
 translateProgram :: Program -> TranslatorSt ()
 translateProgram (Program [])      = return ()
 translateProgram (Program entries) = do
-    print' $ "translate program"
+    print' $ "translateProgram"
     mapM_ translateEntry entries
 
 fromAst :: Program -> TranslatorSt ()
@@ -200,7 +209,7 @@ parseFromFile' f = do
          Right r -> return r
          
 emptyTables = Tables ("constant", M.empty) ("value", M.empty) fillScriptsTable fillSysConstructorsTable
-emptySt = Translator emptyTables (return ()) Nothing 0
+emptySt = Translator emptyTables (return ()) Nothing 0 0
 
 test :: IO ()
 test = do
@@ -208,7 +217,7 @@ test = do
 
     res <- parseFromFile' "controller_script_simple1.txt"
     print res >> print ""
-    (_, (Translator tables prog _ _)) <- S.runStateT (fromAst res) emptySt
+    (_, (Translator tables prog _ _ _)) <- S.runStateT (fromAst res) emptySt
     
     interpretControlProgram prog
     
