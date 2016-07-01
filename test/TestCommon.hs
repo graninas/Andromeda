@@ -29,11 +29,6 @@ interpretScript (ControllerScript scr)     = interpretControllerScript scr
 interpretScript (InfrastructureScript scr) = interpretInfrastructureScript scr
 
 interpretInfrastructureScript (Pure a) = return a
-{-
-interpretInfrastructureScript (Free (StoreReading r next)) = do
-    print ("StoreReading", r)
-    interpretInfrastructureScript next
-    -}
 interpretInfrastructureScript (Free (SendTo r v next)) = do
     print ("SendTo", v)
     r v

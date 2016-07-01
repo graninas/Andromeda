@@ -141,7 +141,13 @@ runConstructor (Constructor n args) = do
     crtas@(CreatedArgs tas) <- runArgs args
     assert (length tas == constructorArity c) "wrong arity:" (length tas)
     created <- createConstructor st (fromJust mbc) crtas
-
+    case created of
+         CreatedConstrScript scr -> do
+             print' $ "--> script created: "
+             res <- liftIO $ interpretControllerScript scr
+             print' $ "--> script interpreter result: " ++ show res
+         CreatedConstr c -> do
+             print' $ "--> constructor created: " ++ show c
     decPrintIndentation
     return $ created
 

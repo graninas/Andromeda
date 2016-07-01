@@ -25,7 +25,7 @@ import Data.Maybe
 
 type Arity = Int
 data Constr where
-    ContrScriptConstr :: String -> Arity  -> Creator (ControllerScript a) -> Constr
+    ContrScriptConstr :: (Show a, Read a) => String -> Arity  -> Creator (ControllerScript a) -> Constr
     SysConstr :: (Show a, Read a) => String -> Arity -> Creator a -> Constr
   
 type ConstructorsTable = M.Map String Constr
@@ -40,8 +40,8 @@ data Creator scr where
    Arity3Cr :: (Read arg1, Read arg2, Read arg3) => (arg1 -> arg2 -> arg3 -> scr) -> Creator scr
 
 data Created where
-    CreatedConstrScript :: forall a. (ControllerScript a) -> Created
-    CreatedConstr :: forall a. a -> Created
+    CreatedConstrScript :: Show a => (ControllerScript a) -> Created
+    CreatedConstr :: (Read a, Show a) => a -> Created
     CreatedConst :: Constant -> Created
     CreatedArgs :: [Created] -> Created
 
@@ -115,15 +115,11 @@ printCreated (CreatedArgs args) = do
     mapM_ printCreated args
     decPrintIndentation
 
-    
-
-toArg = undefined
-
-feedControllerCreator :: Creator (ControllerScript a) -> [Created] -> Created
-feedControllerCreator (Arity0Cr cr) []            = CreatedConstrScript $ cr
-feedControllerCreator (Arity1Cr cr) (a1:[])       = CreatedConstrScript $ cr (toArg a1)
-feedControllerCreator (Arity2Cr cr) (a1:a2:[])    = CreatedConstrScript $ cr (toArg a1) (toArg a2)
-feedControllerCreator (Arity3Cr cr) (a1:a2:a3:[]) = CreatedConstrScript $ cr (toArg a1) (toArg a2) (toArg a3)
+feedControllerCreator :: Creator (ControllerScript a) -> [String] -> ControllerScript a
+feedControllerCreator (Arity0Cr cr) []            = cr
+feedControllerCreator (Arity1Cr cr) (a1:[])       = cr (read a1)
+feedControllerCreator (Arity2Cr cr) (a1:a2:[])    = cr (read a1) (read a2)
+feedControllerCreator (Arity3Cr cr) (a1:a2:a3:[]) = cr (read a1) (read a2) (read a3)
 feedControllerCreator _ _ = error "feedControllerCreator"
 
 feedCreator :: Creator a -> [String] -> a
@@ -135,16 +131,18 @@ feedCreator _ _ = error "feedCreator"
 
 createArg (CreatedConst (StringConstant str)) = show str
 createArg (CreatedConst (IntegerConstant i))  = show i
+createArg (CreatedConstr c) = show c
 
 createConstructor _ (ContrScriptConstr n a cr) ca@(CreatedArgs args) = do
     print' $ "createConstructor ContrScriptConstr " ++ n
     printCreated ca
-    return $ feedControllerCreator cr args
+    let aas = map createArg args
+    let scr = feedControllerCreator cr aas
+    return $ CreatedConstrScript scr
+    
 createConstructor _ (SysConstr n a cr) ca@(CreatedArgs args) = do
     print' $ "createConstructor SysConstr " ++ n
     printCreated ca
     let aas = map createArg args
     let c = feedCreator cr aas
-    print' $ "constructor created: " ++ show c
-   
-    error "createConstructor"
+    return $ CreatedConstr c
