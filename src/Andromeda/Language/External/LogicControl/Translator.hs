@@ -62,7 +62,7 @@ print' :: String -> TranslatorSt ()
 print' s = do
     i <- use printIndentation
     liftIO $ putStr $ replicate (i * 4) ' '
-    liftIO $ print s
+    liftIO $ putStrLn s
 
 
 fillControllerScriptConstrs :: ConstructorsTable
