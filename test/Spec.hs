@@ -21,14 +21,13 @@ main = do
     {-
     T1.test
     T2.test
-    T3.test
-    T4.test
     T5.test
     T6.test
-
     Sim1.test
     Sim2.test
-    -}
+        -}
+    --T3.test
+    --T4.test
     
     --T7.test
     --T8.test

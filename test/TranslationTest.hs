@@ -64,10 +64,15 @@ assertNotExistIn table key = do
     
 translateExpr = error "translateExpr"
 
+addScript :: IdName -> Script () -> TranslatorSt ()
+addScript n scr = do
+    mbscr <- use $ tables . scripts . at n
+    assert (isNothing mbscr) "script already exist:" n
+    (tables . scripts . at n) %= (\_ -> Just scr)
 
 findScriptConstructor :: IdName -> ScriptType -> TranslatorSt (Maybe Constr)
 findScriptConstructor n st = do
-    mbs <- use (tables . scripts . at st)
+    mbs <- use (tables . scriptDefs . at st)
     case mbs of
          Nothing -> return Nothing
          Just t -> return $ view (at n) t
@@ -172,9 +177,30 @@ runLIStatements (LinedIndentedStmt (IndentedStmt i stmt):stmts) = do
     composeds <- runLIStatements stmts
     return $ composed : composeds
 
-runResolving [] = return ()
-runResolving _ = error "runResolving"
+{-
+runControllerScriptResolving :: [Composed] -> TranslatorSt ScriptResolved
+runControllerScriptResolving [] = return NoneScriptResolved
+runControllerScriptResolving (ComposedVal n (CreatedControllerScript scr):rs) = do
+    next <- runControllerScriptResolving rs
+    case next of
+         NoneScriptResolved -> return $ ContrScriptResolved scr
+         ContrScriptResolved composedScr -> let scr' = scr >> composedScr
+                                            in return $ ContrScriptResolved scr'
+                                            -}
+                                            
+runControllerScriptResolving :: [Composed] -> ControllerScript ()
+runControllerScriptResolving [] = return ()
+runControllerScriptResolving (ComposedVal n (CreatedControllerScript scr):rs) = do
+    scr
+    runControllerScriptResolving rs
     
+runResolving composeds = do
+    st <- gesScriptTranslation
+    case st of
+         ControllerScriptDef -> do
+             let scr = runControllerScriptResolving composeds
+             return $ ContrScriptResolved scr
+         _ -> error "runResolving"
     
 runProcedureDef (ProcDef (ProcDecl n params) (ProcBody stmts)) = do
     print' $ "runProcedureDef: " ++ n
@@ -182,7 +208,11 @@ runProcedureDef (ProcDef (ProcDecl n params) (ProcBody stmts)) = do
     print' $ "indentation: 1"
     composeds <- runLIStatements stmts
     resolved <- runResolving composeds
-    return ()
+    case resolved of
+         ContrScriptResolved scr -> do
+             print' $ "controller script resolved."
+             liftIO $ interpretControllerScript scr
+             addScript n (controllerScript scr)
 
 translateEntry :: ProgramEntry -> TranslatorSt ()
 translateEntry LinedEmptyEntry = return ()
@@ -215,7 +245,7 @@ parseFromFile' f = do
          Left e -> error $ show e
          Right r -> return r
          
-emptyTables = Tables ("constant", M.empty) ("value", M.empty) fillScriptsTable fillSysConstructorsTable
+emptyTables = Tables ("constant", M.empty) ("value", M.empty) fillScriptsDefsTable fillSysConstructorsTable M.empty
 emptySt = Translator emptyTables (return ()) Nothing 0 0
 
     

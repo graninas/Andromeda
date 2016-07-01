@@ -17,7 +17,7 @@ newtype Interface = Interface PhysicalAddress
 
 mkInterface = Interface
 
--- | Convinient language for defining devices in network.
+-- | Convenient language for defining devices in network.
 data HndlItem a = RemoteDeviceDef PhysicalAddress (Hdl ()) Description (Interface -> a)
                 | TerminalUnitDef PhysicalAddress (Hdl ()) Description (Interface -> a)
                 | LogicControlDef PhysicalAddress Description (Interface -> a)

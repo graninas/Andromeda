@@ -33,7 +33,7 @@ instance Functor Procedure where
     fmap g (Set c p v next) = (Set c p v   (g next))
     fmap g (Read c ci p f)  = (Read c ci p (g . f))
     fmap g (Run c cmd f)    = (Run c cmd   (g . f))
-
+   
 type ControllerScript a = Free Procedure a
 
 get :: Controller -> Property -> ControllerScript Value

@@ -25,11 +25,11 @@ import Data.Maybe
 
 type Arity = Int
 data Constr where
-    ContrScriptConstr :: (Show a, Read a) => String -> Arity  -> Creator (ControllerScript a) -> Constr
-    SysConstr :: (Show a, Read a) => String -> Arity -> Creator a -> Constr
+    ContrScriptConstr :: (Show a, Read a) => String -> Arity -> Creator (ControllerScript a) -> Constr
+    SysConstr         :: (Show a, Read a) => String -> Arity -> Creator a -> Constr
   
 type ConstructorsTable = M.Map String Constr
-type ScriptsTable = M.Map ScriptType ConstructorsTable
+type ScriptsDefsTable = M.Map ScriptType ConstructorsTable
 
 type SysConstructorsTable = ConstructorsTable
 
@@ -47,14 +47,20 @@ data Created where
 
 data Composed where
     ComposedVal :: IdName -> Created -> Composed
+    NoneComposed :: Composed -- dummy
+    
+data ScriptResolved where
+    ContrScriptResolved :: ControllerScript () -> ScriptResolved
     
 type Table = (String, M.Map String String)
+type ScriptsTable = M.Map IdName (Script ())
 
 data Tables = Tables {
       _constants :: Table
     , _values :: Table
-    , _scripts :: ScriptsTable
+    , _scriptDefs :: ScriptsDefsTable
     , _sysConstructors :: SysConstructorsTable
+    , _scripts :: ScriptsTable
 }
 
 data Translator = Translator {
@@ -88,8 +94,8 @@ fillControllerScriptConstrs = M.fromList
     , ("Run",  ContrScriptConstr "Run"  2 (Arity2Cr LC.run))
     ]
 
-fillScriptsTable :: ScriptsTable
-fillScriptsTable = M.fromList
+fillScriptsDefsTable :: ScriptsDefsTable
+fillScriptsDefsTable = M.fromList
     [ (ControllerScriptDef, fillControllerScriptConstrs)
     ]
 
