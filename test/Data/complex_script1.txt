@@ -1,15 +1,26 @@
 
+val boosters = Controller ("boosters")
+val start = Command ("start")
+val stop = Command ("stop")
+val success = Right ("OK")
 
-const boosters = Controller ("boosters")
-const start = Command ("start", Nothing)
-const stop = Command ("stop", Nothing)
-const successCmd = Right ("OK")
-const logInfoSuccess = LogInfo ("success")
-
-BoostersProgram:
+// This procedure uses the ControllerScript possibilities.
+[ControllerScript] BoostersOnOffProgram:
     val result1 = Run (boosters, start)
-    val result2 = Run (boosters, Command ("stop", Nothing))
-    LogInfo ("start command succeeded.")
-    logInfoSuccess
-    444
+    if (result1 == success) then
+        LogInfo ("boosters start success.")
+        val result2 = Run (boosters, Command ("stop"))
+        if (result2 == success) then
+            LogInfo ("boosters stop success.")
+        else
+            LogError ("boosters stop failed.")
+    else
+        LogError ("boosters start failed.")
+
+// Script entry point.
+// May be absent if it's just a library of scripts.
+Main:
+    LogInfo ("script is started.")
+    BoostersOnOffProgram
+    LogInfo ("script is finished.")
 
