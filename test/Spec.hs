@@ -12,8 +12,8 @@ import qualified ControllerTest as T9
 import qualified ParsingTest as T10
 import qualified TranslationTest as T11
 
-import qualified Simulator.AutomationTest as Sim1
 import qualified Simulator.InitializationTest as Sim2
+import qualified Simulator.SimulationTest as Sim1
 
 main :: IO ()
 main = do
@@ -22,16 +22,17 @@ main = do
     T1.test
     T2.test
     T5.test
-    T6.test
-    Sim1.test
-    Sim2.test
-        -}
+    T6.test-}
+        
     --T3.test
     --T4.test
     
     --T7.test
     --T8.test
     --T9.test
-    T10.test
+    --T10.test
     --T11.test
+    
+    Sim1.test
+    Sim2.test
     

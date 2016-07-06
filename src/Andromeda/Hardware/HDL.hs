@@ -26,3 +26,16 @@ sensor c idx p = liftF (SensorDef c idx p ())
 controller :: ComponentDef -> ComponentIndex -> Hdl ()
 controller c idx = liftF (ControllerDef c idx ())
 
+class HdlInterpreter m where
+   onSensorDef :: Monad m => ComponentDef -> ComponentIndex -> Par -> m ()
+   onControllerDef :: Monad m => ComponentDef -> ComponentIndex -> m ()
+   
+interpretHdl :: (Monad m, HdlInterpreter m) => Hdl a -> m a
+interpretHdl (Pure a)   = return a
+interpretHdl (Free proc) = case proc of
+    SensorDef cd idx p next -> do
+        onSensorDef cd idx p
+        interpretHdl next
+    ControllerDef cd idx next -> do
+        onControllerDef cd idx
+        interpretHdl next

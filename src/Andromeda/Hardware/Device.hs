@@ -1,7 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Andromeda.Hardware.Device (
-    DeviceInterpreter(..),
-    interpret,
     Device,
     DeviceComponent,
     blankDevice,
@@ -37,37 +35,19 @@ data DeviceComponent = Sensor Par Guid
 newtype Device = DeviceImpl (M.Map ComponentIndex DeviceComponent)
     deriving (Show, Eq)
 
-class DeviceInterpreter m where
-   onSensorDef :: MonadState Device m => ComponentDef -> ComponentIndex -> Par -> m ()
-   onControllerDef :: MonadState Device m => ComponentDef -> ComponentIndex -> m ()
-   onSensorDef _ _ _ = return ()
-   onControllerDef _ _ = return ()
-
 blankDevice = DeviceImpl M.empty
+   
+addSensor :: ComponentDef -> ComponentIndex -> Par -> Device -> Device
+addSensor cd idx p (DeviceImpl m) = DeviceImpl $ M.insert idx (Sensor p (componentGuid cd)) m
 
-addSensor :: ComponentIndex -> Par -> ComponentDef -> Device -> Device
-addSensor idx p c (DeviceImpl m) = DeviceImpl $ M.insert idx (Sensor p (componentGuid c)) m
-
-addController :: ComponentIndex -> ComponentDef -> Device -> Device
-addController idx c (DeviceImpl m) = DeviceImpl $ M.insert idx (Controller (componentGuid c)) m
+addController :: ComponentDef -> ComponentIndex -> Device -> Device
+addController cd idx (DeviceImpl m) = DeviceImpl $ M.insert idx (Controller (componentGuid cd)) m
 
 removeComponent :: ComponentIndex -> Device -> Device
 removeComponent idx (DeviceImpl d) = DeviceImpl $ M.delete idx d
 
 updateComponent :: Maybe DeviceComponent -> ComponentIndex -> Device -> Device
 updateComponent mbC idx (DeviceImpl d)  = DeviceImpl $ M.update (const mbC) idx d
-
-interpret :: (MonadState Device m, DeviceInterpreter m) => Hdl () -> m ()
-interpret (Pure ())   = return ()
-interpret (Free proc) = case proc of
-    SensorDef c idx p next -> do
-        onSensorDef c idx p
-        modify (addSensor idx p c)
-        interpret next
-    ControllerDef c idx next -> do
-        onControllerDef c idx
-        modify (addController idx c)
-        interpret next
 
 getComponent :: ComponentIndex -> Device -> Maybe DeviceComponent
 getComponent idx (DeviceImpl m) = M.lookup idx m

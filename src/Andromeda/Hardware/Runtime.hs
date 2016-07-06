@@ -25,25 +25,24 @@ type DeviceIO = IORef Device
 
 -- Internal types.
 type DeviceState = State Device
-instance DeviceInterpreter DeviceState where
-   onSensorDef _ _ _ = return ()
+instance HdlInterpreter DeviceState where
+   onSensorDef cd idx p    = modify (addSensor cd idx p)
+   onControllerDef cd idx = modify (addController cd idx)
 
 type DeviceIOState = StateT Device IO
-instance DeviceInterpreter DeviceIOState where
-   onSensorDef c idx p = lift $ putStrLn $
-    "Sensor [" ++
-    show c ++
-    " Idx: " ++ BS.unpack idx ++
-    show p ++ "]"
-   onControllerDef c idx = lift $ putStrLn $
-    "Controller [" ++
-    show c ++
-    " Idx: " ++ BS.unpack idx ++ "]"
+   
+instance HdlInterpreter DeviceIOState where
+   onSensorDef cd idx p   = do
+       lift $ print ("Sensor", cd, idx, p)
+       modify (addSensor cd idx p)
+   onControllerDef cd idx = do
+       lift $ print ("Controller", cd, idx)
+       modify (addController cd idx)
 
 -- | Makes a real instanse of device defined by the language.
 -- Operates in the State monad.
 makeDevice :: Hdl () -> Device
-makeDevice hdl = execState (interpret hdl) blankDevice
+makeDevice hdl = execState (interpretHdl hdl) blankDevice
 
 readParameter :: ComponentIndex -> Device -> Maybe (Measurement tag)
 readParameter idx h = do
@@ -66,7 +65,7 @@ setParameterIO hrdwIO idx m = do
 -- Operates in the IO monad.
 makeDeviceIO :: Hdl () -> IO DeviceIO
 makeDeviceIO hdl = do
-    hrdw <- execStateT (interpret hdl) blankDevice
+    hrdw <- execStateT (interpretHdl hdl) blankDevice
     newIORef hrdw
 
 -- | Extracts device instance from IO container.
