@@ -20,12 +20,6 @@ data Component a = SensorDef ComponentDef ComponentIndex Par a
 -- By this definition a real device in hardware network should be composed.
 type Hdl a = Free Component a
 
-sensor :: ComponentDef -> ComponentIndex -> Par -> Hdl ()
-sensor c idx p = liftF (SensorDef c idx p ())
-
-controller :: ComponentDef -> ComponentIndex -> Hdl ()
-controller c idx = liftF (ControllerDef c idx ())
-
 class HdlInterpreter m where
    onSensorDef :: Monad m => ComponentDef -> ComponentIndex -> Par -> m ()
    onControllerDef :: Monad m => ComponentDef -> ComponentIndex -> m ()
@@ -39,3 +33,9 @@ interpretHdl (Free proc) = case proc of
     ControllerDef cd idx next -> do
         onControllerDef cd idx
         interpretHdl next
+
+sensor :: ComponentDef -> ComponentIndex -> Par -> Hdl ()
+sensor c idx p = liftF (SensorDef c idx p ())
+
+controller :: ComponentDef -> ComponentIndex -> Hdl ()
+controller c idx = liftF (ControllerDef c idx ())

@@ -28,6 +28,28 @@ data HndlItem a = RemoteDeviceDef PhysicalAddress (Hdl ()) Description (Interfac
 -- It's just a definition, but not a real hardware network.
 type Hndl a = Free HndlItem a
 
+class HndlInterpreter m where
+   onRemoteDeviceDef :: Monad m => PhysicalAddress -> Hdl () -> Description -> m Interface
+   onTerminalUnitDef :: Monad m => PhysicalAddress -> Hdl () -> Description -> m Interface
+   onLogicControlDef :: Monad m => PhysicalAddress -> Description -> m Interface
+   onConnectionDef   :: Monad m => [Interface] -> Description -> m ()
+   
+interpretHndl :: (Monad m, HndlInterpreter m) => Hndl a -> m a
+interpretHndl (Pure a)   = return a
+interpretHndl (Free proc) = case proc of
+    RemoteDeviceDef pa hdl d next -> do
+        i <- onRemoteDeviceDef pa hdl d
+        interpretHndl $ next i
+    TerminalUnitDef pa hdl d next -> do
+        i <- onTerminalUnitDef pa hdl d
+        interpretHndl $ next i
+    LogicControlDef pa d next -> do
+        i <- onLogicControlDef pa d
+        interpretHndl $ next i
+    ConnectionDef is d next -> do
+        onConnectionDef is d
+        interpretHndl $ next
+
 remoteDevice :: PhysicalAddress -> Hdl () -> Description -> Hndl Interface
 remoteDevice pa hdl d = liftF (RemoteDeviceDef pa hdl d id)
 
