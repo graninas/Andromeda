@@ -12,6 +12,7 @@ module Andromeda.Hardware.Device (
     removeComponent
   ) where
 
+import Andromeda.Hardware.Types
 import Andromeda.Hardware.Description
 import Andromeda.Hardware.HDL
 import Andromeda.Hardware.Parameter

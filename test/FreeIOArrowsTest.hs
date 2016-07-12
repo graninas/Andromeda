@@ -22,7 +22,7 @@ type FlowIOArr b c = ArrEff ControlFreeIO b c
 evalScriptFT :: Script a -> ControlProgramFT a
 evalScriptFT scr = liftF (EvalScript scr id)
 
-valueA :: FlowIOArr ValueSource (Measurement Kelvin)
+valueA :: FlowIOArr ComponentInstanceIndex (Measurement Kelvin)
 valueA = arr (const $ toKelvin 1.0)
 
 -- Just a sample of whatever meaningless computation

@@ -3,13 +3,11 @@ module Andromeda.Hardware.HDL where
 
 import Andromeda.Common
 import Andromeda.Calculations
+import Andromeda.Hardware.Types
 import Andromeda.Hardware.Parameter
 import Andromeda.Hardware.Description
 
-import qualified Data.ByteString.Char8 as BS
 import Control.Monad.Free
-
-type ComponentIndex = BS.ByteString
 
 -- | Convinient language for defining sensors and other devices.
 data Component a = SensorDef ComponentDef ComponentIndex Par a
@@ -25,7 +23,7 @@ class HdlInterpreter m where
    onControllerDef :: Monad m => ComponentDef -> ComponentIndex -> m ()
    
 interpretHdl :: (Monad m, HdlInterpreter m) => Hdl a -> m a
-interpretHdl (Pure a)   = return a
+interpretHdl (Pure a) = return a
 interpretHdl (Free proc) = case proc of
     SensorDef cd idx p next -> do
         onSensorDef cd idx p

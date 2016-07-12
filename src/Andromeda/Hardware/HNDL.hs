@@ -3,6 +3,7 @@ module Andromeda.Hardware.HNDL where
 
 import Andromeda.Common
 import Andromeda.Calculations
+import Andromeda.Hardware.Types
 import Andromeda.Hardware.Parameter
 import Andromeda.Hardware.Description
 import Andromeda.Hardware.HDL

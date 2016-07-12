@@ -15,7 +15,7 @@ import Lib
 -- TODO: add new tests
 -- TODO: implement arrows and scripts poperly.
 
-valueA :: FlowArr ValueSource (Measurement Kelvin)
+valueA :: FlowArr ComponentInstanceIndex (Measurement Kelvin)
 valueA = undefined
 
 -- Just a sample of whatever meaningless computation

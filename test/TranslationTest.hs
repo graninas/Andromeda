@@ -13,6 +13,7 @@ import Control.Monad.IO.Class (liftIO)
 import qualified Data.Map as M
 import Data.Maybe
 
+--  TODO: move code into lib
 
 enableScriptTranslation st = do
     assertNoScriptTranslation
@@ -39,9 +40,6 @@ decIndentation = do
 assertIndentation p = do
     i <- use indentation
     assert (p i) "wrong indentation:" i
-    
-assert False msg n = error $ msg ++ " " ++ show n
-assert _ _ _ = return ()    
     
 getConst :: IdName -> TranslatorSt (Maybe String)
 getConst n = use (tables . constants . _2 . at n)

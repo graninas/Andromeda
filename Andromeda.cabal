@@ -16,51 +16,54 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src,
                        lib
-  exposed-modules:     Control.Arrow.ArrEff,
-                       Control.Arrow.Reactive,
-                       Control.Service.Remote,
+  exposed-modules:     Control.Arrow.ArrEff
+                      , Control.Arrow.Reactive
+                      , Control.Service.Remote
                        
-                       Lib,                       
-                       Andromeda,
+                      , Lib     
+                      , Andromeda
                        
-                       Andromeda.Common,
-                       Andromeda.Common.Value,
-                       Andromeda.Common.Untag,
-                       Andromeda.Common.Parsing,
+                      , Andromeda.Common
+                      , Andromeda.Common.Assert
+                      , Andromeda.Common.Value
+                      , Andromeda.Common.Untag
+                      , Andromeda.Common.Parsing
+                      , Andromeda.Common.Types
                        
-                       Andromeda.Simulator,
-                       Andromeda.Simulator.Simulation,
-                       Andromeda.Simulator.ValueGenerators,
+                      , Andromeda.Simulator
+                      , Andromeda.Simulator.Simulation
+                      , Andromeda.Simulator.ValueGenerators
                        
-                       Andromeda.Hardware,
-                       Andromeda.Hardware.HDL,
-                       Andromeda.Hardware.HNDL,
-                       Andromeda.Hardware.Description,
-                       Andromeda.Hardware.Parameter,
-                       Andromeda.Hardware.Network,
-                       Andromeda.Hardware.Device,
-                       Andromeda.Hardware.Runtime,
+                      , Andromeda.Hardware
+                      , Andromeda.Hardware.Types
+                      , Andromeda.Hardware.HDL
+                      , Andromeda.Hardware.HNDL
+                      , Andromeda.Hardware.Description
+                      , Andromeda.Hardware.Parameter
+                      , Andromeda.Hardware.Network
+                      , Andromeda.Hardware.Device
+                      , Andromeda.Hardware.Runtime
                        
-                       Andromeda.Calculations,
-                       Andromeda.Calculations.Measurements,
-                       Andromeda.Calculations.Physics.Units,
+                      , Andromeda.Calculations
+                      , Andromeda.Calculations.Measurements
+                      , Andromeda.Calculations.Physics.Units
                        
-                       Andromeda.LogicControl,
-                       Andromeda.LogicControl.Language.Controller,
-                       Andromeda.LogicControl.Language.Computation,
-                       Andromeda.LogicControl.Language.Infrastructure,
-                       Andromeda.LogicControl.Language.Control,
-                       Andromeda.LogicControl.Language.Script,
-                       Andromeda.LogicControl.Language.ControlFlow,
+                      , Andromeda.LogicControl
+                      , Andromeda.LogicControl.Language.Controller
+                      , Andromeda.LogicControl.Language.Computation
+                      , Andromeda.LogicControl.Language.Infrastructure
+                      , Andromeda.LogicControl.Language.Control
+                      , Andromeda.LogicControl.Language.Script
+                      , Andromeda.LogicControl.Language.ControlFlow
                        
-                       Andromeda.Language,
-                       Andromeda.Language.External.LogicControl.Parser,
-                       Andromeda.Language.External.LogicControl.AST,
-                       Andromeda.Language.External.LogicControl.Translator,
-                       Andromeda.Language.External.LogicControl.Interpreter,
+                      , Andromeda.Language
+                      , Andromeda.Language.External.LogicControl.Parser
+                      , Andromeda.Language.External.LogicControl.AST
+                      , Andromeda.Language.External.LogicControl.Translator
+                      , Andromeda.Language.External.LogicControl.Interpreter
                        
-                       Andromeda.Assets,
-                       Andromeda.Assets.Hardware.Components
+                      , Andromeda.Assets
+                      , Andromeda.Assets.Hardware.Components
                        
   build-depends:       base >= 4.7 && < 5,
                        vector,

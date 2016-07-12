@@ -6,7 +6,7 @@ import TestCommon
 
 import Control.Concurrent
 
-data In = SetNoiseGenerator ValueSource NoiseGenerator
+data In = SetNoiseGenerator ComponentInstanceIndex NoiseGenerator
 data Out = Out String
   deriving (Show, Eq)
   

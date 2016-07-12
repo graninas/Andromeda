@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 module Andromeda.Hardware.Runtime where
 
+import Andromeda.Hardware.Types
 import Andromeda.Hardware.Description
 import Andromeda.Hardware.HDL
 import Andromeda.Hardware.Parameter
