@@ -6,22 +6,22 @@ import TestCommon
 
 import Control.Concurrent
 
-data In = SetNoiseGenerator ComponentInstanceIndex NoiseGenerator
+data In = SetValueGenerator ComponentInstanceIndex ValueGenerator
 data Out = Out String
   deriving (Show, Eq)
   
 type SimulatorPipe = Pipe In Out
 
-process req simModel = return (Out "initialized", simModel)
+process _ = return $ Out "initialized"
 
 test = do
-    let simModel = compileSimModel networkDef
+    simModel <- compileSimModel networkDef
     
     pipe <- createPipe :: IO SimulatorPipe
-    thrId <- forkIO $ simulation pipe process simModel
+    simHandle <- startSimulation pipe process simModel
 
-    resp <- sendRequest pipe (SetNoiseGenerator boostersNozzle1T floatIncrementGen)
+    resp <- sendRequest pipe (SetValueGenerator boostersNozzle1T floatIncrementGen)
     if (resp == Out "initialized") then print "passed." else print "failed."
     
-    killThread thrId
+    stopSimulation simHandle
     print "Simulation done."

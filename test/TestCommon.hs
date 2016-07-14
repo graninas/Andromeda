@@ -78,6 +78,8 @@ rotaryEngineDef = do
 08                LC
 -}
 
+boostersAddr = "00:02"
+
 networkDef :: Hndl ()
 networkDef = do
     controllerR1 <- terminalUnit "02:01" controllerDef "controller1-left rotary engine" 
@@ -86,7 +88,7 @@ networkDef = do
     iController  <- terminalUnit "04:02" controllerDef "intermediate controller"
     rotE1 <- remoteDevice "00:01" rotaryEngineDef "left rotary engine"
     rotE2 <- remoteDevice "00:03" rotaryEngineDef "right rotary engine"
-    boost <- remoteDevice "00:02" boostersDef "boosters"
+    boost <- remoteDevice boostersAddr boostersDef "boosters"
     lc    <- logicControl "08:02" "main logic control"
     connection [rotE1, controllerR1, iController] "conn to left rot e"
     connection [rotE2, controllerR2, iController] "conn to right rot e"
@@ -97,9 +99,9 @@ networkDef = do
 -- boostersNozzle1P, boostersNozzle2P :: ComponentInstanceIndex Pressure
 boostersNozzle1T, boostersNozzle2T :: ComponentInstanceIndex
 boostersNozzle1P, boostersNozzle2P :: ComponentInstanceIndex
-boostersNozzle1T = ("02:02", nozzle1T)
-boostersNozzle1P = ("02:02", nozzle1P)
-boostersNozzle2T = ("02:02", nozzle2T)
-boostersNozzle2P = ("02:02", nozzle2P)
+boostersNozzle1T = (boostersAddr, nozzle1T)
+boostersNozzle1P = (boostersAddr, nozzle1P)
+boostersNozzle2T = (boostersAddr, nozzle2T)
+boostersNozzle2P = (boostersAddr, nozzle2P)
 
 
