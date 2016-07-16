@@ -18,9 +18,28 @@ import Data.Maybe
 
 floatIncrementGen = NoiseGenerator (\(Measurement (FloatValue v)) -> Measurement . FloatValue $ (v+1.0))
 
-setValueGenerator :: ComponentInstanceIndex -> ValueGenerator -> SimState ()
-setValueGenerator idx g = do
+getSensorNode :: ComponentInstanceIndex -> SimState SensorNode
+getSensorNode idx = do
     mbSensor <- use $ sensorsTable . at idx
     assert (isJust mbSensor) "Sensor not found" idx
+    return $ fromJust mbSensor
+
+
+setValueGenerator :: ComponentInstanceIndex -> ValueGenerator -> SimState ()
+setValueGenerator idx g = do
+    sensor <- getSensorNode idx
     let setValueGen tv g = liftIO $ atomically $ writeTVar tv g
-    setValueGen ((mbSensor ^?! _Just) ^. valueGenerator) g
+    setValueGen (sensor ^. valueGenerator) g
+
+setEnabled tv = liftIO $ atomically $ writeTVar tv True
+          
+runNetwork :: SimState ()
+runNetwork = do
+    m <- use $ sensorsTable
+    let tvs = m ^.. traverse . producing
+    mapM_ setEnabled tvs
+    
+getValueSource :: ComponentInstanceIndex -> SimState ValueSource
+getValueSource idx = do
+    sensor <- getSensorNode idx
+    return $ sensor ^. valueSource

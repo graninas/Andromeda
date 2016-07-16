@@ -124,8 +124,6 @@ networkDef = do
     connection [boost, controllerRB, iController] "conn to boosters"
     connection [iController, lc] "conn to iController"
     
--- boostersNozzle1T, boostersNozzle2T :: ComponentInstanceIndex Temperature
--- boostersNozzle1P, boostersNozzle2P :: ComponentInstanceIndex Pressure
 boostersNozzle1T, boostersNozzle2T :: ComponentInstanceIndex
 boostersNozzle1P, boostersNozzle2P :: ComponentInstanceIndex
 boostersNozzle1T = (boostersAddr, nozzle1T)

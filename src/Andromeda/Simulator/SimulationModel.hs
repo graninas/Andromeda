@@ -25,8 +25,9 @@ data ValueGenerator = NoGenerator
 -- TODO: use Device as Node?
 data ControllerNode = ControllerNode
 
+type ValueSource = TVar Par
 data SensorNode = SensorNode
-    { _par :: TVar Par
+    { _valueSource :: ValueSource
     , _valueGenerator :: TVar ValueGenerator
     , _producing :: TVar Bool
     }
