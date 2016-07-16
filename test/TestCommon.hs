@@ -1,13 +1,58 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleContexts #-}
 module TestCommon where
 
-import Andromeda
+import Andromeda.Common
+import Andromeda.LogicControl
+import Andromeda.Calculations
+import Andromeda.Assets
+import Andromeda.Hardware.Types
+import Andromeda.Hardware.Description
+import Andromeda.Hardware.Parameter
+import Andromeda.Hardware.HDL
+import Andromeda.Hardware.HNDL
 
 import Prelude hiding (read)
+import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Free
+import Control.Monad.Trans.State as S
+import Control.Lens
 
+newtype InterpreterSt = InterpreterSt
+    { _debugPrintEnabled :: Bool }
+
+type TestCPInterpreter = StateT InterpreterSt IO
+
+makeLenses ''InterpreterSt
+
+debugPrint_ :: Show v => v -> TestCPInterpreter ()
+debugPrint_ v = do
+    dp <- use debugPrintEnabled
+    if dp then liftIO $ print v
+          else return ()
+          
+instance ControlProgramInterpreter TestCPInterpreter where
+    onEvalScript (ControllerScript scr)     = interpretControllerScript scr
+    onEvalScript (InfrastructureScript scr) = interpretInfrastructureScript scr
+
+instance ControllerScriptInterpreter TestCPInterpreter where
+    onGet c p     = debugPrint_ ("Get", c, p)      >> return (StringValue "ggg")
+    onSet c p v   = debugPrint_ ("Set", c, p, v)
+    onRead c ci p = debugPrint_ ("Read", c, ci, p) >> return (Measurement . FloatValue $ 33.3)
+    onRun c cmd   = debugPrint_ ("Run", c, cmd)    >> return (Right "OK.")
+    
+instance InfrastructureScriptInterpreter TestCPInterpreter where
+    onSendTo r v     = debugPrint_ ("SendTo", v)
+    onGetCurrentTime = debugPrint_ "GetCurrentTime" >> return 10
+
+testInterpretControllerScript     debugPrint script = runStateT (interpretControllerScript script)     (InterpreterSt debugPrint)
+testInterpretInfrastructureScript debugPrint script = runStateT (interpretInfrastructureScript script) (InterpreterSt debugPrint)
+testInterpretControlProgram       debugPrint script = runStateT (interpretControlProgram script)       (InterpreterSt debugPrint)
+    
 boostersController = Controller "Boosters"
 
 start   = Command "start"
@@ -25,23 +70,7 @@ readTemperature controller idx = read controller idx temperature
 
 readPressure :: Controller -> ComponentIndex -> ControllerScript (Measurement Pascal)
 readPressure controller idx = read controller idx pressure
-
-type TestCPInterpreter = IO
-
-instance ControlProgramInterpreter TestCPInterpreter where
-    onEvalScript (ControllerScript scr)     = interpretControllerScript scr
-    onEvalScript (InfrastructureScript scr) = interpretInfrastructureScript scr
-
-instance ControllerScriptInterpreter TestCPInterpreter where
-    onGet c p     = print ("Get", c, p)      >> return (StringValue "ggg")
-    onSet c p v   = print ("Set", c, p, v)
-    onRead c ci p = print ("Read", c, ci, p) >> return (Measurement . FloatValue $ 33.3)
-    onRun c cmd   = print ("Run", c, cmd)    >> return (Right "OK.")
     
-instance InfrastructureScriptInterpreter TestCPInterpreter where
-    onSendTo r v     = print ("SendTo", v)
-    onGetCurrentTime = print "GetCurrentTime" >> return 10
-        
 nozzleTemerature, nozzlePressure, nozzle1T, nozzle2T, nozzle1P, nozzle2P :: ComponentIndex
 nozzleTemerature = "nozzle-t"
 nozzlePressure = "nozzle-p"

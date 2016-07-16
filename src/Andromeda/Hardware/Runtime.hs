@@ -32,12 +32,14 @@ instance HdlInterpreter DeviceState where
 
 type DeviceIOState = StateT Device IO
    
+-- TODO: add debug print switch.
+   
 instance HdlInterpreter DeviceIOState where
    onSensorDef cd idx p   = do
-       lift $ print ("Sensor", cd, idx, p)
+       --lift $ print ("Sensor", cd, idx, p)
        modify (addSensor cd idx p)
    onControllerDef cd idx = do
-       lift $ print ("Controller", cd, idx)
+       --lift $ print ("Controller", cd, idx)
        modify (addController cd idx)
 
 -- | Makes a real instanse of device defined by the language.

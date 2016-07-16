@@ -36,7 +36,7 @@ boostersHeatUp controller = do
         then heatUp controller
         else return (0.0, 0.0)
 
-spec = describe "Interpreting ControllerScript test" $
-    it "Interpreting with result" $ do
-        vs <- interpretControllerScript $ boostersHeatUp boostersController
+spec = describe "Interpreting ControllerScript test." $
+    it "Running script should return values." $ do
+        (vs, st) <- testInterpretControllerScript False $ boostersHeatUp boostersController
         vs `shouldBe` (0.0, 0.0)

@@ -7,7 +7,7 @@ import TestCommon
 import Test.Hspec
 
 data In = Initialize
-        | SetValueGenerator ComponentInstanceIndex ValueGenerator
+        | SimStateAction (SimState ())
         | Start ComponentInstanceIndex
         | Stop ComponentInstanceIndex
 data Out = NoOut
@@ -20,8 +20,8 @@ ok = Out "OK."
 
 process :: Process In Out
 process Initialize = return ok
-process (SetValueGenerator idx g) = do
-    setValueGenerator idx g
+process (SimStateAction act) = do
+    act
     return ok
 
 makeRunningSimulation = do
@@ -36,12 +36,13 @@ simulateSingleReq req = do
     stopSimulation simHandle
     return resp
     
+action = SimStateAction
+    
 spec = describe "Simulation test" $ do
-    it "Initialization test should be initialized." $ do
+    it "Initialization should be successfull." $ do
         resp <- simulateSingleReq Initialize
         resp `shouldBe` ok
-    it "SetValueGenerator test should generate values" $ do
+    it "Setting of value generator should be successfull." $ do
         -- TODO: value generation
-        resp <- simulateSingleReq (SetValueGenerator boostersNozzle1T floatIncrementGen)
+        resp <- simulateSingleReq (action $ setValueGenerator boostersNozzle1T floatIncrementGen)
         resp `shouldBe` ok
-{--}

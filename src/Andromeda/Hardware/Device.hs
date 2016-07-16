@@ -32,6 +32,7 @@ data DeviceComponent = Sensor Par Guid
     deriving (Show, Eq)
 
 -- | Instance of Device.
+-- This type may be used as database entity. With other types like this one it will be data model.
 -- Abstract data type.
 newtype Device = DeviceImpl (M.Map ComponentIndex DeviceComponent)
     deriving (Show, Eq)

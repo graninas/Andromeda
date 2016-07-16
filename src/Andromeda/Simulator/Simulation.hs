@@ -3,11 +3,16 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
 
-module Andromeda.Simulator.Simulation where
+module Andromeda.Simulator.Simulation
+    ( compileSimModel
+    , simulation
+    , startSimulation
+    , stopSimulation
+    ) where
 
 import Andromeda.Hardware
 import Andromeda.Common
-import Andromeda.Simulator.ValueGenerators
+import Andromeda.Simulator.SimulationModel
 
 import Control.Service.Remote
 
@@ -21,37 +26,15 @@ import Control.Concurrent.STM
 import Control.Lens
 import Data.Maybe
 
--- TODO: use Device as Node?
-data ControllerNode = ControllerNode
-
-data SensorNode = SensorNode
-    { _par :: TVar Par
-    , _valueGenerator :: TVar ValueGenerator
-    , _producing :: TVar Bool
-    }
-
-type SensorsTable     = M.Map ComponentInstanceIndex SensorNode
-type ControllersTable = M.Map ComponentInstanceIndex ControllerNode
-type NetworkScheme    = M.Map String String
-
-data SimulationModel = SimulationModel
-    { _sensorsTable :: SensorsTable
-    , _controllersTable :: ControllersTable
-    , _network :: NetworkScheme
-    }
-
 data CompilerState = CompilerState
     { _simulationModel :: SimulationModel
     , _componentAddress :: PhysicalAddress
+    , _debugPrintEnabled :: Bool
     }
     
-makeLenses ''SensorNode
-makeLenses ''SimulationModel
 makeLenses ''CompilerState
 
 type SimCompilerState = S.StateT CompilerState IO
-type SimState = S.StateT SimulationModel IO
-type Process req resp = req -> SimState resp
 
 assertNoSensor key = do
     mbS <- use (simulationModel . sensorsTable . at key)
@@ -68,12 +51,17 @@ mkDefaultSensorNode p = do
     return $ SensorNode tvP tvG tvProd
 
 mkDefaultControllerNode = return ControllerNode
+
+debugPrint v = do
+    dp <- use debugPrintEnabled
+    if dp then liftIO $ print v
+          else return ()
     
 instance HdlInterpreter SimCompilerState where
    onSensorDef cd ci p = do
        pa <- use componentAddress
        let key = (pa, ci)
-       liftIO $ print ("Compiling SensorDef", key)
+       debugPrint ("Compiling SensorDef", key)
        assert (not $ BS.null pa) "ComponentAddress is null." ""
        assertNoSensor key
        sn <- mkDefaultSensorNode p
@@ -81,7 +69,7 @@ instance HdlInterpreter SimCompilerState where
    onControllerDef cd ci = do
        pa <- use componentAddress
        let key = (pa, ci)
-       liftIO $ print ("Compiling ControllerDef", key)
+       debugPrint ("Compiling ControllerDef", key)
        assert (not $ BS.null pa) "ComponentAddress is null." ""
        assertNoController key
        cn <- mkDefaultControllerNode
@@ -89,39 +77,30 @@ instance HdlInterpreter SimCompilerState where
 
 instance HndlInterpreter SimCompilerState where
    onRemoteDeviceDef pa hdl d = do
-       liftIO $ print ("Compiling DeviceDef", pa)
+       debugPrint ("Compiling DeviceDef", pa)
        componentAddress .= pa
        interpretHdl hdl
        return $ mkInterface pa
    onTerminalUnitDef pa hdl d = do
-       liftIO $ print ("Compiling TerminalUnitDef", pa)
+       debugPrint ("Compiling TerminalUnitDef", pa)
        componentAddress .= pa
        interpretHdl hdl
        return $ mkInterface pa
    onLogicControlDef pa d = do
-       liftIO $ print ("Compiling LogicControlDef", pa)
+       debugPrint ("Compiling LogicControlDef", pa)
        return $ mkInterface pa
    onConnectionDef is d = do
-       liftIO $ print "Compiling ConnectionDef"
+       debugPrint "Compiling ConnectionDef"
        return ()
 
-emptySimModel = SimulationModel M.empty M.empty M.empty
-emptyCompilerState = CompilerState emptySimModel BS.empty
-
-setValueGen tv g = liftIO $ atomically $ writeTVar tv g
-
-setValueGenerator :: ComponentInstanceIndex -> ValueGenerator -> SimState ()
-setValueGenerator idx g = do
-    mbSensor <- use $ sensorsTable . at idx
-    assert (isJust mbSensor) "Sensor not found" idx
-    setValueGen ((mbSensor ^?! _Just) ^. valueGenerator) g
+emptyCompilerState = CompilerState emptySimModel BS.empty False
 
 ---- public interface:
 
 compileSimModel :: Hndl () -> IO SimulationModel
 compileSimModel hndl = do
     let compiler = interpretHndl hndl
-    (CompilerState m _) <- S.execStateT compiler emptyCompilerState
+    (CompilerState m _ _) <- S.execStateT compiler emptyCompilerState
     return m
     
 -- TODO: make simulation work in State monad or even in STM monad.

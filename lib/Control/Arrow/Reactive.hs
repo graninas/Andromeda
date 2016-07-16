@@ -19,7 +19,7 @@ periodicA' dt ts arrow b = do
     if (dts < dt)
        then periodicA' dt ts arrow b
        else do
-           liftIO $ print dts
+           --liftIO $ print dts
            runArrEff1 arrow b
 
 periodicA :: MonadIO eff => Int -> ArrEff eff b c -> ArrEff eff b c

@@ -32,7 +32,8 @@ library
                        
                       , Andromeda.Simulator
                       , Andromeda.Simulator.Simulation
-                      , Andromeda.Simulator.ValueGenerators
+                      , Andromeda.Simulator.SimulationModel
+                      , Andromeda.Simulator.Actions
                        
                       , Andromeda.Hardware
                       , Andromeda.Hardware.Types

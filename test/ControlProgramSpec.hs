@@ -45,8 +45,8 @@ logMsg = sendTo logReceiver . StringValue
 alarm :: String -> InfrastructureScript ()
 alarm = sendTo alarmReceiver . StringValue
 
-spec = describe "ControlProgram test" $
-    it "interpret test" $ do
-        (r1, r2) <- interpretControlProgram controlProgram
+spec = describe "ControlProgram interpretation test." $
+    it "Running start and stop boosters should return OK." $ do
+        ((r1, r2), st) <- testInterpretControlProgram False controlProgram
         r1 `shouldBe` (Right "OK.")
         r2 `shouldBe` (Right "OK.")

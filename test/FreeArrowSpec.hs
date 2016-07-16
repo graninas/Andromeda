@@ -50,21 +50,21 @@ interpretFT prog = do
 
 interpretFT' (Pure a) = return a
 interpretFT' (Free (EvalScript (ControllerScript cs) next)) = do
-    v <- interpretControllerScript cs
+    (v, st) <- testInterpretControllerScript False cs
     interpretFT (next v)
 interpretFT' (Free (EvalScript (InfrastructureScript is) next)) = do
-    v <- interpretInfrastructureScript is
+    (v, st) <- testInterpretInfrastructureScript False is
     interpretFT (next v)
 
 runFreeIOArr interpret ar v = do
     let p = runArrEff1 ar v
     interpret p
     
-spec = describe "Free IO Arrows test" $ do
-    it "Running FreeT arrow" $ do
+spec = describe "Free IO Arrows test." $ do
+    it "Running FreeT arrow should be successful." $ do
         (c, _) <- runFreeIOArr interpretFT monitor ()
         c `shouldBe` ()
-    it "Running FreeT arrow with results" $ do
+    it "Running FreeT arrow with results should return values." $ do
         ((s, f), _) <- runFreeIOArr interpretFT calculateSomething (toKelvin 1.0)
         s `shouldBe` "something"
         f `shouldBe` 1.005
