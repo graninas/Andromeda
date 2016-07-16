@@ -17,9 +17,10 @@ import Andromeda.Hardware.HDL
 import Andromeda.Hardware.HNDL
 
 import Prelude hiding (read)
-import Control.Monad.IO.Class (liftIO)
+import Control.Monad.IO.Class (liftIO, MonadIO(..))
 import Control.Monad.Free
 import Control.Monad.Trans.State as S
+import Control.Monad.State.Class (MonadState(..))
 import Control.Lens
 
 newtype InterpreterSt = InterpreterSt
@@ -29,7 +30,7 @@ type TestCPInterpreter = StateT InterpreterSt IO
 
 makeLenses ''InterpreterSt
 
-debugPrint_ :: Show v => v -> TestCPInterpreter ()
+debugPrint_ :: (Show v, MonadState InterpreterSt m, MonadIO m) => v -> m ()
 debugPrint_ v = do
     dp <- use debugPrintEnabled
     if dp then liftIO $ print v
@@ -107,7 +108,7 @@ rotaryEngineDef = do
 08                LC
 -}
 
-boostersAddr = "00:02"
+boostersAddr = "00:02" -- (row, column)
 
 networkDef :: Hndl ()
 networkDef = do
