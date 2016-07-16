@@ -1,15 +1,16 @@
 {-# LANGUAGE Arrows #-}
-module FreeIOArrowsTest where
+module FreeArrowSpec where
+
+import Andromeda
+import TestCommon
+import Lib
 
 import Prelude hiding ((.), id)
 import Control.Category
 import Control.Arrow
 import Control.Monad.Trans.Free
 import qualified Control.Monad.Free as F
-
-import Andromeda
-import TestCommon
-import Lib
+import Test.Hspec
 
 -- This file contains hacks and shortpaths to demonstrate the approach to be designed.
 -- TODO: add new tests
@@ -38,7 +39,7 @@ seconds n = n * 1000000000
 
 monitor :: FlowIOArr () ()
 monitor = proc _ -> do
-    t1 <- periodicA (seconds 10000) valueA -< boostersNozzle1T
+    t1 <- periodicA (seconds 1) valueA -< boostersNozzle1T
     v1 <- calculateSomething -< t1
     returnA -< ()
 
@@ -54,21 +55,17 @@ interpretFT' (Free (EvalScript (ControllerScript cs) next)) = do
 interpretFT' (Free (EvalScript (InfrastructureScript is) next)) = do
     v <- interpretInfrastructureScript is
     interpretFT (next v)
-    
+
 runFreeIOArr interpret ar v = do
     let p = runArrEff1 ar v
     interpret p
-
-runInfinitely arrow = do
-    (c, next) <- runFreeIOArr interpretFT arrow ()
-    runInfinitely next
     
-test :: IO ()
-test = do
-    print "FreeIOArrowsTest:"
-
-    runInfinitely monitor
-
-
-
-    print "Done."
+spec = describe "Free IO Arrows test" $ do
+    it "Running FreeT arrow" $ do
+        (c, _) <- runFreeIOArr interpretFT monitor ()
+        c `shouldBe` ()
+    it "Running FreeT arrow with results" $ do
+        ((s, f), _) <- runFreeIOArr interpretFT calculateSomething (toKelvin 1.0)
+        s `shouldBe` "something"
+        f `shouldBe` 1.005
+        

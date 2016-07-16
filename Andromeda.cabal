@@ -94,6 +94,7 @@ test-suite Andromeda-test
   hs-source-dirs:      test
   main-is:             Spec.hs
   build-depends:       base >= 4.7 && < 5,
+                       hspec,
                        vector,
                        containers,
                        bytestring,
@@ -108,19 +109,13 @@ test-suite Andromeda-test
                        parsec,
                        Andromeda
   other-modules:       TestCommon,
-                       BoostersHeatUpTest,
-                       HardwareDescriptorsTest,
-                       HardwareNetworkTest,
-                       ParameterTagTest,
-                       ControllerTest,
-                       ArrowsTest,
-                       FreeIOArrowsTest,
-                       ReactiveArrowsTest,
+                       ControlProgramSpec,
+                       ControllerScriptSpec,
+                       FreeArrowSpec,
+                       HardwareSpec,
                        ParsingTest,
                        TranslationTest,
-                       
-                       Simulator.InitializationTest,
-                       Simulator.SimulationTest
+                       Simulator.SimulationSpec
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
 

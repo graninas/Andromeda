@@ -1,5 +1,5 @@
 {-# LANGUAGE RankNTypes #-}
-module BoostersHeatUpTest where
+module ControllerScriptSpec where
 
 import Andromeda
 import TestCommon
@@ -7,6 +7,7 @@ import TestCommon
 import Prelude hiding (read)
 import Control.Monad.Free
 import qualified Data.ByteString.Char8 as BS
+import Test.Hspec
 
 -- TODO: create new tests
 ok (Right _) = True
@@ -35,8 +36,7 @@ boostersHeatUp controller = do
         then heatUp controller
         else return (0.0, 0.0)
 
-test :: IO ()
-test = do
-    vs <- interpretControllerScript $ boostersHeatUp boostersController
-    print vs
-
+spec = describe "Interpreting ControllerScript test" $
+    it "Interpreting with result" $ do
+        vs <- interpretControllerScript $ boostersHeatUp boostersController
+        vs `shouldBe` (0.0, 0.0)

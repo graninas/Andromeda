@@ -1,14 +1,15 @@
-module ControllerTest where
-
-import Control.Monad.Free
+module ControlProgramSpec where
 
 import Andromeda
 import TestCommon
 
+import Control.Monad.Free
+import Test.Hspec
+
 inf = "[INF]"
 err = "[ERR]"
 
-controlProgram :: ControlProgram ()
+controlProgram :: ControlProgram (CommandResult, CommandResult)
 controlProgram = do
     logMessage inf "Control program started."
     result1 <- evalScript (controllerScript startBoosters)
@@ -16,6 +17,7 @@ controlProgram = do
     checkResult result1
     checkResult result2
     logMessage inf "Control program finished."
+    return (result1, result2)
     
 logMessage :: String -> String -> ControlProgram ()
 logMessage severity str = do
@@ -31,11 +33,11 @@ startRotaryEngines = run (Controller "rotary engines") (Command "start")
 
 checkResult :: CommandResult -> ControlProgram ()
 checkResult (Left failed) = do
-    let errorMsg = "Start engines failed"
+    let errorMsg = "Command failed"
     logMessage err errorMsg
     evalScript (infrastructureScript (alarm errorMsg))
 checkResult (Right succeeded) = 
-    logMessage inf "Start engines succeeded"
+    logMessage inf "Command succeeded"
 
 logMsg :: String -> InfrastructureScript ()
 logMsg = sendTo logReceiver . StringValue
@@ -43,5 +45,8 @@ logMsg = sendTo logReceiver . StringValue
 alarm :: String -> InfrastructureScript ()
 alarm = sendTo alarmReceiver . StringValue
 
-test :: TestCPInterpreter ()
-test = interpretControlProgram controlProgram
+spec = describe "ControlProgram test" $
+    it "interpret test" $ do
+        (r1, r2) <- interpretControlProgram controlProgram
+        r1 `shouldBe` (Right "OK.")
+        r2 `shouldBe` (Right "OK.")
