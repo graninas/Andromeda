@@ -22,6 +22,8 @@ newtype Controller = Controller String
 type CommandResult = Either String String
 
 -- TODO: rework ComponentIndex, ValueSource and relations with HDL.
+-- TODO: Parameter seems redundant because component index is related to the concrete sensor,
+-- thus the information about measurement type is already there.
 data Procedure a
     = Get Controller Property (Value -> a)
     | Set Controller Property Value a

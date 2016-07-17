@@ -7,8 +7,10 @@ import Andromeda
 import TestCommon
 
 import Test.Hspec
+import Prelude hiding (read)
 import Control.Monad
 import Control.Monad.Trans.State as S
+import Control.Monad.State.Class (MonadState)
 import Control.Monad.IO.Class (liftIO, MonadIO(..))
 import Control.Lens
 
@@ -59,29 +61,28 @@ runNetworkAct = okOnSuccessAction $ runNetwork
 setGen1Act idx = okOnSuccessAction $ setValueGenerator idx floatIncrementGen
 getValueSourceAct idx = valueOnSuccessAction $ getValueSource idx
 
-{-
 newtype SimNetworkBridge a = SimNetworkBridge (StateT InterpreterSt IO a)
-    deriving (Monad, MonadState, MonadIO)
+    deriving (Functor, Applicative, Monad, MonadState InterpreterSt, MonadIO)
 
-instance ControlProgramInterpreter SimulatorBridge where
+instance ControlProgramInterpreter SimNetworkBridge where
     onEvalScript (ControllerScript scr)     = interpretControllerScript scr
     onEvalScript (InfrastructureScript scr) = interpretInfrastructureScript scr
 
-instance ControllerScriptInterpreter SimulatorBridge where
-    onGet c p = do
-        debugPrint_ ("Get", c, p)
+instance ControllerScriptInterpreter SimNetworkBridge where
+    onGet contr prop = do
+        debugPrint_ ("Get", contr, prop)
         error "onGet not implemented."
-    onSet c p v = do
-        debugPrint_ ("Set", c, p, v)
+    onSet contr prop v = do
+        debugPrint_ ("Set", contr, prop, v)
         error "onSet not implemented."
     onRead contr compIdx param = do
         debugPrint_ ("Read", contr, compIdx, param)
         error "onRead not implemented."
-    onRun c cmd = do
-        debugPrint_ ("Run", c, cmd)
+    onRun contr cmd = do
+        debugPrint_ ("Run", contr, cmd)
         error "onRun not implemented."
     
-instance InfrastructureScriptInterpreter TestCPInterpreter where
+instance InfrastructureScriptInterpreter SimNetworkBridge where
     onSendTo r v = do
         debugPrint_ ("SendTo", v)
         error "onSendTo not implemented."
@@ -89,45 +90,12 @@ instance InfrastructureScriptInterpreter TestCPInterpreter where
         debugPrint_ "GetCurrentTime"
         error "onGetCurrentTime not implemented."
 
-readSensor' :: ComponentInstanceIndex -> ControlProgram [Measurement Kelvin]
-readSensor' (pa, idx) = do
-    result1 <- evalScript (controllerScript startBoosters)
-    result2 <- evalScript (controllerScript startRotaryEngines)
-    checkResult result1
-    checkResult result2
-    logMessage inf "Control program finished."
-    return (result1, result2)
+readTemperatureSensor :: ComponentInstanceIndex -> ControlProgram (Measurement Kelvin)
+readTemperatureSensor (devObjIdx, compIdx) = evalScript . controllerScript $ do
+    read (Controller "TODO") compIdx temperature
 
 readSensorTimes :: Int -> ComponentInstanceIndex -> ControlProgram [Measurement Kelvin]
-readSensorTimes n = sequence . replicate n . readSensor'
-    
-logMessage :: String -> String -> ControlProgram ()
-logMessage severity str = do
-    time <- evalScript (infrastructureScript getCurrentTime)
-    let msg = show (time, severity, str)
-    evalScript (infrastructureScript (logMsg msg))
-    
-startBoosters :: ControllerScript CommandResult
-startBoosters = run (Controller "boosters") (Command "start")
-
-startRotaryEngines :: ControllerScript CommandResult
-startRotaryEngines = run (Controller "rotary engines") (Command "start")
-
-checkResult :: CommandResult -> ControlProgram ()
-checkResult (Left failed) = do
-    let errorMsg = "Command failed"
-    logMessage err errorMsg
-    evalScript (infrastructureScript (alarm errorMsg))
-checkResult (Right succeeded) = 
-    logMessage inf "Command succeeded"
-
-logMsg :: String -> InfrastructureScript ()
-logMsg = sendTo logReceiver . StringValue
-
-alarm :: String -> InfrastructureScript ()
-alarm = sendTo alarmReceiver . StringValue
-    -}
-    
+readSensorTimes n = sequence . replicate n . readTemperatureSensor
 
 {- ComponentIndex :: ByteString
    DeviceObjectIndex = ByteString
@@ -145,8 +113,7 @@ sensors model (all sensors in all devices):
 
     (ComponentInstanceIndex, sensorobj)
   ~ ((DeviceObjectIndex, ComponentIndex), sensorobj)
-
--}     
+-}
 
 spec = describe "Simulation test" $ do
     it "Initialization should be successfull." $
