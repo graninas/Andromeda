@@ -64,6 +64,9 @@ temperatureCelsius = Temperature
 -- Second attempt (used in HDL)
 data Par = forall tag. Typeable tag => Par Value (Measurement tag)
 
+instance Ord Par where
+    (Par v1 _) `compare` (Par v2 _) = v1 `compare` v2
+
 instance Show Par where
   show (Par v t) = "Par v:" ++ show v ++ " t:" ++ show t
   

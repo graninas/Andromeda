@@ -42,6 +42,8 @@ makeLenses ''CompilerState
 
 type SimCompilerState = S.StateT CompilerState IO
 
+workerThreadsDelay = 10 -- ms
+
 emptyComposingDevice = ComposingDevice M.empty Nothing
 emptyCompilerState = CompilerState emptySimModel False emptyComposingDevice
 
@@ -56,8 +58,8 @@ assertNoController idx = do
 mkDefaultSensorNode p = do
     tvP <- liftIO $ newTVarIO p
     tvG <- liftIO $ newTVarIO noGenerator
-    tvProd <- liftIO $ newTVarIO False
-    return $ SensorNode tvP tvG tvProd
+    tmvProd <- liftIO $ newEmptyTMVarIO
+    return $ SensorNode tvP tvG tmvProd
     
 mkDefaultControllerNode = return ControllerNode
 
@@ -66,11 +68,33 @@ debugPrint v = do
     if dp then liftIO $ print v
           else return ()
 
+waitProducing prodTMvar = do
+    prod <- takeTMVar prodTMvar
+    putTMVar prodTMvar prod
+    return prod
+
+generateValue NoGenerator vs = vs
+generateValue (StepGenerator f) vs = f vs
+
+processValueSource False _ _ = return ()
+processValueSource True vsTVar vgTVar = do
+    vs <- readTVar vsTVar
+    vg <- readTVar vgTVar
+    let vg' = generateValue vg vs
+    writeTVar vsTVar vg'
+
+sensorWorker sn@(SensorNode vsTVar vgTVar prodTMvar) = do
+    prod <- liftIO $ atomically $ waitProducing prodTMvar
+    liftIO $ atomically $ processValueSource prod vsTVar vgTVar
+    threadDelay workerThreadsDelay
+    sensorWorker sn
+
 instance HdlInterpreter SimCompilerState where
    onSensorDef compDef compIdx par = do
        debugPrint ("Compiling SensorDef", compIdx, compDef)
        assertNoSensor compIdx
        sn <- mkDefaultSensorNode par
+       liftIO $ forkIO $ sensorWorker sn
        composingDevice . composingSensors . at compIdx %= (const $ Just sn)
    onControllerDef compDef compIdx = do
        debugPrint ("Compiling ControllerDef", compIdx, compDef)

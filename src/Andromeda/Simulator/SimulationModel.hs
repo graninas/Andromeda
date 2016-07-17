@@ -20,7 +20,7 @@ import Control.Lens
 import Data.Maybe
 
 data ValueGenerator = NoGenerator
-                    | forall a. NoiseGenerator (a -> a)
+                    | StepGenerator (Par -> Par)
 
 -- TODO: use Device as Node?
 data ControllerNode = ControllerNode
@@ -29,7 +29,7 @@ type ValueSource = TVar Par
 data SensorNode = SensorNode
     { _valueSource :: ValueSource
     , _valueGenerator :: TVar ValueGenerator
-    , _producing :: TVar Bool
+    , _producing :: TMVar Bool
     }
 
 type ComponentInstanceIndex = (DeviceObjectIndex, ComponentIndex)

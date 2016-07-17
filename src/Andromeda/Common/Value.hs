@@ -4,7 +4,7 @@ data Value = BoolValue Bool
            | IntValue Int
            | FloatValue Float
            | StringValue String
-  deriving (Show, Read, Eq)
+  deriving (Show, Read, Eq, Ord)
 
 class ToValue a where
   toValue :: a -> Value

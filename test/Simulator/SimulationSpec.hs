@@ -12,24 +12,26 @@ import Control.Monad
 import Control.Monad.Trans.State as S
 import Control.Monad.State.Class (MonadState)
 import Control.Monad.IO.Class (liftIO, MonadIO(..))
+import Control.Concurrent
 import Control.Lens
+import Data.List (nub, sort)
 
 data In = Initialize
         | SimStateSimpleAction (SimState ())
-        | forall v. SimStateReturningAction (SimState v)
+        | GetValueSource ComponentInstanceIndex
         | Start ComponentInstanceIndex
         | Stop ComponentInstanceIndex
 data Out = Out String
-         | forall v . OutValue v
+         | OutValueSource ValueSource
 
 instance Eq Out where
     Out s1 == Out s2 = s1 == s2
-    OutValue v1 == OutValue v2 = False -- TODO
+    OutValueSource v1 == OutValueSource v2 = False
     _ == _ = False
   
 instance Show Out where
     show (Out s1) = "Out " ++ s1
-    show (OutValue v1) = "OutValue"
+    show (OutValueSource v1) = "OutValueSource"
   
 type SimulatorPipe = Pipe In Out
 
@@ -38,9 +40,9 @@ ok = Out "OK."
 process :: Process In Out
 process Initialize = return ok
 process (SimStateSimpleAction act) = act >> return ok
-process (SimStateReturningAction act) = do
-    v <- act
-    return $ OutValue v
+process (GetValueSource idx) = do
+    v <- getValueSource idx
+    return $ OutValueSource v
 
 makeRunningSimulation = do
     simModel <- compileSimModel networkDef
@@ -55,11 +57,9 @@ simulateSingleReq req = do
     return resp
     
 okOnSuccessAction act = SimStateSimpleAction act
-valueOnSuccessAction act = SimStateReturningAction act
 
 runNetworkAct = okOnSuccessAction $ runNetwork
 setGen1Act idx = okOnSuccessAction $ setValueGenerator idx floatIncrementGen
-getValueSourceAct idx = valueOnSuccessAction $ getValueSource idx
 
 newtype SimNetworkBridge a = SimNetworkBridge (StateT InterpreterSt IO a)
     deriving (Functor, Applicative, Monad, MonadState InterpreterSt, MonadIO)
@@ -127,10 +127,11 @@ spec = describe "Simulation test" $ do
         (pipe, simHandle) <- makeRunningSimulation
         r1 <- sendRequest pipe (setGen1Act boostersNozzle1T)
         r2 <- sendRequest pipe runNetworkAct
-        (OutValue vs) <- sendRequest pipe (getValueSourceAct boostersNozzle1T)
-        
+        (OutValueSource vs) <- sendRequest pipe (GetValueSource boostersNozzle1T)
+        vals <- sequence (replicate 10 $ threadDelay 1000 >> readValueSource vs) -- TODO: this is unstable.
         stopSimulation simHandle
         r1 `shouldBe` ok
         r2 `shouldBe` ok
-    -- TODO: setting value gen to non-existent sensor
+        sort vals `shouldBe` vals
+        length vals `shouldBe` 10
     

@@ -16,7 +16,9 @@ import Control.Concurrent.STM
 import Control.Lens
 import Data.Maybe
 
-floatIncrementGen = NoiseGenerator (\(Measurement (FloatValue v)) -> Measurement . FloatValue $ (v+1.0))
+f (Par (FloatValue v) t) = Par (FloatValue (v + 1.0)) t
+
+floatIncrementGen = StepGenerator f
 
 getSensorNode :: ComponentInstanceIndex -> SimState SensorNode
 getSensorNode idx = do
@@ -30,15 +32,19 @@ setValueGenerator idx g = do
     let setValueGen tv g = liftIO $ atomically $ writeTVar tv g
     setValueGen (sensor ^. valueGenerator) g
 
-setEnabled tv = liftIO $ atomically $ writeTVar tv True
+setEnabled tmv = liftIO $ atomically $ putTMVar tmv True
 
 runNetwork :: SimState ()
 runNetwork = do
     m <- use $ sensorsModel
-    let tvs = m ^.. traverse . producing
-    mapM_ setEnabled tvs
+    let tmvs = m ^.. traverse . producing
+    mapM_ setEnabled tmvs
 
 getValueSource :: ComponentInstanceIndex -> SimState ValueSource
 getValueSource idx = do
     sensor <- getSensorNode idx
     return $ sensor ^. valueSource
+    
+readValueSource :: ValueSource -> IO Par
+readValueSource vs = liftIO $ atomically $ readTVar vs
+
