@@ -18,11 +18,13 @@ spec = describe "Device runtime test." $ do
     it "Reading of new device sensor should return 0." $ do
         deviceIO <- makeDeviceIO boostersDef
         device <- readDeviceIO deviceIO
-        let t = readParameter nozzle1T device
+        let t = readParameter nozzle1TCompIdx device
         t `shouldBe` (Just $ toKelvin 0.0)
     it "Setting and reading sensro value should be consistent." $ do
         let val = toKelvin 101.0
         deviceIO <- makeDeviceIO boostersDef
-        setParameterIO deviceIO nozzle1T val
-        t <- readParameterIO nozzle1T deviceIO
+        setParameterIO deviceIO nozzle1TCompIdx val
+        t <- readParameterIO nozzle1TCompIdx deviceIO
         t `shouldBe` (Just val)
+        
+    

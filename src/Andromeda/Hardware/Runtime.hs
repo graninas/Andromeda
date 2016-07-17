@@ -27,56 +27,52 @@ type DeviceIO = IORef Device
 -- Internal types.
 type DeviceState = State Device
 instance HdlInterpreter DeviceState where
-   onSensorDef cd idx p    = modify (addSensor cd idx p)
-   onControllerDef cd idx = modify (addController cd idx)
+   onSensorDef compDef compIdx p   = modify (addSensor compDef compIdx p)
+   onControllerDef compDef compIdx = modify (addController compDef compIdx)
 
-type DeviceIOState = StateT Device IO
-   
 -- TODO: add debug print switch.
-   
+type DeviceIOState = StateT Device IO
 instance HdlInterpreter DeviceIOState where
-   onSensorDef cd idx p   = do
-       --lift $ print ("Sensor", cd, idx, p)
-       modify (addSensor cd idx p)
-   onControllerDef cd idx = do
-       --lift $ print ("Controller", cd, idx)
-       modify (addController cd idx)
+   onSensorDef compDef compIdx par = do
+       --lift $ print ("Sensor", compDef, compIdx, p)
+       modify (addSensor compDef compIdx par)
+   onControllerDef compDef compIdx = do
+       --lift $ print ("Controller", compDef, compIdx)
+       modify (addController compDef compIdx)
 
 -- | Makes a real instanse of device defined by the language.
 -- Operates in the State monad.
-makeDevice :: Hdl () -> Device
+makeDevice :: Hdl a -> Device
 makeDevice hdl = execState (interpretHdl hdl) blankDevice
 
 readParameter :: ComponentIndex -> Device -> Maybe (Measurement tag)
-readParameter idx h = do
-    sensor <- getComponent idx h
+readParameter compIdx dev = do
+    sensor <- getComponent compIdx dev
     readSensor sensor
 
 setParameterIO :: Typeable tag => DeviceIO -> ComponentIndex -> Measurement tag -> IO Bool
-setParameterIO hrdwIO idx m = do
-    d <- readDeviceIO hrdwIO
-    let mbDevComp = do comp <- getComponent idx d
+setParameterIO devIO compIdx m = do
+    dev <- readDeviceIO devIO
+    let mbDevComp = do comp <- getComponent compIdx dev
                        setSensor comp m
     case mbDevComp of
         Nothing -> return False
-        _ -> do writeDeviceIO hrdwIO $ updateComponent mbDevComp idx d
+        _ -> do writeDeviceIO devIO $ updateComponent mbDevComp compIdx dev
                 return True
-
-        
 
 -- | Makes a real instanse of device defined by the language.
 -- Operates in the IO monad.
-makeDeviceIO :: Hdl () -> IO DeviceIO
+makeDeviceIO :: Hdl a -> IO DeviceIO
 makeDeviceIO hdl = do
-    hrdw <- execStateT (interpretHdl hdl) blankDevice
-    newIORef hrdw
+    dev <- execStateT (interpretHdl hdl) blankDevice
+    newIORef dev
 
 -- | Extracts device instance from IO container.
 readDeviceIO = readIORef
 writeDeviceIO = writeIORef
 
 readParameterIO :: ComponentIndex -> DeviceIO -> IO (Maybe (Measurement tag))
-readParameterIO idx hrdwIO  = do
-    h <- readDeviceIO hrdwIO
-    return $ readParameter idx h
+readParameterIO compIdx hrdwIO  = do
+    dev <- readDeviceIO hrdwIO
+    return $ readParameter compIdx dev
 

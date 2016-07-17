@@ -26,74 +26,78 @@ import Control.Concurrent.STM
 import Control.Lens
 import Data.Maybe
 
+data ComposingDevice = ComposingDevice
+    { _composingSensors :: M.Map ComponentIndex SensorNode
+    , _composingController :: Maybe (ComponentIndex, ControllerNode)
+    }
+
 data CompilerState = CompilerState
     { _simulationModel :: SimulationModel
-    , _componentAddress :: PhysicalAddress
     , _debugPrintEnabled :: Bool
+    , _composingDevice :: ComposingDevice
     }
     
+makeLenses ''ComposingDevice
 makeLenses ''CompilerState
 
 type SimCompilerState = S.StateT CompilerState IO
 
-assertNoSensor key = do
-    mbS <- use (simulationModel . sensorsTable . at key)
-    assert (isNothing mbS) "Sensor exist" key
+emptyComposingDevice = ComposingDevice M.empty Nothing
+emptyCompilerState = CompilerState emptySimModel False emptyComposingDevice
 
-assertNoController key = do
-    mbC <- use (simulationModel . controllersTable . at key)
-    assert (isNothing mbC) "Controller exist" key
+assertNoSensor idx = do
+    mbS <- use (composingDevice . composingSensors . at idx)
+    assert (isNothing mbS) "Sensor exist" idx
+
+assertNoController idx = do
+    mbC <- use $ composingDevice . composingController
+    assert (isNothing mbC) "Controller exist" idx
     
 mkDefaultSensorNode p = do
     tvP <- liftIO $ newTVarIO p
     tvG <- liftIO $ newTVarIO noGenerator
     tvProd <- liftIO $ newTVarIO False
     return $ SensorNode tvP tvG tvProd
-
+    
 mkDefaultControllerNode = return ControllerNode
 
 debugPrint v = do
     dp <- use debugPrintEnabled
     if dp then liftIO $ print v
           else return ()
-    
+
 instance HdlInterpreter SimCompilerState where
-   onSensorDef cd ci p = do
-       pa <- use componentAddress
-       let key = (pa, ci)
-       debugPrint ("Compiling SensorDef", key)
-       assert (not $ BS.null pa) "ComponentAddress is null." ""
-       assertNoSensor key
-       sn <- mkDefaultSensorNode p
-       (simulationModel . sensorsTable . at key) %= (const $ Just sn)
-   onControllerDef cd ci = do
-       pa <- use componentAddress
-       let key = (pa, ci)
-       debugPrint ("Compiling ControllerDef", key)
-       assert (not $ BS.null pa) "ComponentAddress is null." ""
-       assertNoController key
+   onSensorDef compDef compIdx par = do
+       debugPrint ("Compiling SensorDef", compIdx, compDef)
+       assertNoSensor compIdx
+       sn <- mkDefaultSensorNode par
+       composingDevice . composingSensors . at compIdx %= (const $ Just sn)
+   onControllerDef compDef compIdx = do
+       debugPrint ("Compiling ControllerDef", compIdx, compDef)
+       assertNoController compIdx
        cn <- mkDefaultControllerNode
-       (simulationModel . controllersTable . at key) %= (const $ Just cn)
+       composingDevice . composingController .= (Just (compIdx, cn))
 
 instance HndlInterpreter SimCompilerState where
-   onRemoteDeviceDef pa hdl d = do
-       debugPrint ("Compiling DeviceDef", pa)
-       componentAddress .= pa
-       interpretHdl hdl
-       return $ mkInterface pa
-   onTerminalUnitDef pa hdl d = do
+   onRemoteDeviceDef hdl d = do
+       debugPrint ("Compiling DeviceDef", d)
+       devIdx@(deviceObjIdx, _) <- interpretHdl hdl
+       m <- use $ composingDevice . composingSensors
+       let m' = M.mapKeys (\compIdx -> (deviceObjIdx, compIdx)) m
+       simulationModel . sensorsModel %= (M.union m')
+       return $ mkRemoteDeviceInterface devIdx
+   onTerminalUnitDef pa d = do
        debugPrint ("Compiling TerminalUnitDef", pa)
-       componentAddress .= pa
-       interpretHdl hdl
-       return $ mkInterface pa
+       return $ mkTerminalUnitInterface pa
    onLogicControlDef pa d = do
        debugPrint ("Compiling LogicControlDef", pa)
        return $ mkInterface pa
-   onConnectionDef is d = do
+   onLinkedDeviceDef (RemoteDeviceInterface rdi) (TerminalUnitInterface tui) = do
+       debugPrint ("Compiling LinkedDeviceDef", rdi, tui)
+       return ()
+   onLinkDef interf tui = do
        debugPrint "Compiling ConnectionDef"
        return ()
-
-emptyCompilerState = CompilerState emptySimModel BS.empty False
 
 ---- public interface:
 

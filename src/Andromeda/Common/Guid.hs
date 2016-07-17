@@ -1,4 +1,4 @@
-module Andromeda.Common.Types where
+module Andromeda.Common.Guid where
 
 import qualified Data.ByteString.Char8 as BS
 

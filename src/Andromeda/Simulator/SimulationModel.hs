@@ -32,14 +32,16 @@ data SensorNode = SensorNode
     , _producing :: TVar Bool
     }
 
-type SensorsTable     = M.Map ComponentInstanceIndex SensorNode
-type ControllersTable = M.Map ComponentInstanceIndex ControllerNode
-type NetworkScheme    = M.Map String String
+type ComponentInstanceIndex = (DeviceObjectIndex, ComponentIndex)
+
+type SensorsModel     = M.Map ComponentInstanceIndex SensorNode
+type ControllersModel = M.Map ComponentInstanceIndex ControllerNode
+type NetworkScheme    = M.Map String String -- TODO
 
 data SimulationModel = SimulationModel
-    { _sensorsTable :: SensorsTable
-    , _controllersTable :: ControllersTable
-    , _network :: NetworkScheme
+    { _sensorsModel :: SensorsModel
+    , _controllersModel :: ControllersModel
+    , _networkScheme :: NetworkScheme
     }
     
 type SimState = S.StateT SimulationModel IO

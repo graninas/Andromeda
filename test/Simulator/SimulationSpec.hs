@@ -128,10 +128,26 @@ alarm :: String -> InfrastructureScript ()
 alarm = sendTo alarmReceiver . StringValue
     -}
     
-    
-    
-    
-    
+
+{- ComponentIndex :: ByteString
+   DeviceObjectIndex = ByteString
+
+sensors in one device:
+  (ComponentIndex, sensorobj)
+
+sensors composing:
+  (ComponentIndex, sensorobj)
+  
+sensors model (all sensors in all devices):
+
+  ComponentInstanceIndex :: (DeviceObjectIndex, ComponentIndex)
+  (For now it's the same as DeviceIndex. It's simulation-only type.)
+
+    (ComponentInstanceIndex, sensorobj)
+  ~ ((DeviceObjectIndex, ComponentIndex), sensorobj)
+
+-}     
+
 spec = describe "Simulation test" $ do
     it "Initialization should be successfull." $
         simulateSingleReq Initialize `shouldReturn` ok

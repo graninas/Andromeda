@@ -28,7 +28,7 @@ library
                       , Andromeda.Common.Value
                       , Andromeda.Common.Untag
                       , Andromeda.Common.Parsing
-                      , Andromeda.Common.Types
+                      , Andromeda.Common.Guid
                        
                       , Andromeda.Simulator
                       , Andromeda.Simulator.Simulation
@@ -41,7 +41,6 @@ library
                       , Andromeda.Hardware.HNDL
                       , Andromeda.Hardware.Description
                       , Andromeda.Hardware.Parameter
-                      , Andromeda.Hardware.Network
                       , Andromeda.Hardware.Device
                       , Andromeda.Hardware.Runtime
                        
@@ -64,7 +63,6 @@ library
                       , Andromeda.Language.External.LogicControl.Interpreter
                        
                       , Andromeda.Assets
-                      , Andromeda.Assets.Hardware.Components
                        
   build-depends:       base >= 4.7 && < 5,
                        vector,

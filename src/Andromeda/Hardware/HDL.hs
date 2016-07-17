@@ -9,7 +9,9 @@ import Andromeda.Hardware.Description
 
 import Control.Monad.Free
 
--- | Convinient language for defining sensors and other devices.
+-- | Convinient language for defining sensors and other components.
+-- TODO: ControllerDef dublicates TerminalUnit?
+-- Maybe several controllers in one device. ComponentIndex is the selector.
 data Component a = SensorDef ComponentDef ComponentIndex Par a
                  | ControllerDef ComponentDef ComponentIndex a
   deriving (Functor)

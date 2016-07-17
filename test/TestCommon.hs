@@ -35,7 +35,7 @@ debugPrint_ v = do
     dp <- use debugPrintEnabled
     if dp then liftIO $ print v
           else return ()
-          
+
 instance ControlProgramInterpreter TestCPInterpreter where
     onEvalScript (ControllerScript scr)     = interpretControllerScript scr
     onEvalScript (InfrastructureScript scr) = interpretInfrastructureScript scr
@@ -53,12 +53,10 @@ instance InfrastructureScriptInterpreter TestCPInterpreter where
 testInterpretControllerScript     debugPrint script = runStateT (interpretControllerScript script)     (InterpreterSt debugPrint)
 testInterpretInfrastructureScript debugPrint script = runStateT (interpretInfrastructureScript script) (InterpreterSt debugPrint)
 testInterpretControlProgram       debugPrint script = runStateT (interpretControlProgram script)       (InterpreterSt debugPrint)
-    
-boostersController = Controller "Boosters"
 
 start   = Command "start"
 stop    = Command "stop"
-power f = Command "power" -- (Just $ floatValue f)
+power _ = Command "power"
 
 logReceiver :: Receiver
 logReceiver = \v -> print v
@@ -72,64 +70,100 @@ readTemperature controller idx = read controller idx temperature
 readPressure :: Controller -> ComponentIndex -> ControllerScript (Measurement Pascal)
 readPressure controller idx = read controller idx pressure
     
-nozzleTemerature, nozzlePressure, nozzle1T, nozzle2T, nozzle1P, nozzle2P :: ComponentIndex
-nozzleTemerature = "nozzle-t"
-nozzlePressure = "nozzle-p"
-nozzle1T = "nozzle1-t"
-nozzle2T = "nozzle2-t"
-nozzle1P = "nozzle1-p"
-nozzle2P = "nozzle2-P"
+aaaManufacturer = "AAA Inc."
+guid1 = "3539390d-f189-4434-bd9e-d39e494a869a"
+guid2 = "c80a1ba3-1e7a-4af9-a10b-2313cc10f9e4"
+guid3 = "02ecabc3-1a02-481f-8e9a-7b0cc62e38f5"
 
-controllerDef :: Hdl ()
-controllerDef = controller aaa_controller_01 "controller"
+aaa_p_02 = component sensors guid1 aaaManufacturer "Pressure sensor AAA-P-02"
+aaa_t_25 = component sensors guid2 aaaManufacturer "Temperature sensor AAA-T-25"
+aaa_controller_01 = component terminalUnits guid3 aaaManufacturer "Controller AAA-C-01"
 
-boostersDef :: Hdl ()
+nozzleTemeratureCompIdx, nozzlePressureCompIdx :: ComponentIndex
+nozzle1TCompIdx, nozzle2TCompIdx, nozzle1PCompIdx, nozzle2PCompIdx :: ComponentIndex
+rotaryEngineControllerCompIdx, boostersControllerCompIdx :: ComponentIndex
+nozzleTemeratureCompIdx = "nozzle-t"
+nozzlePressureCompIdx = "nozzle-p"
+nozzle1TCompIdx = "nozzle1-t"
+nozzle2TCompIdx = "nozzle2-t"
+nozzle1PCompIdx = "nozzle1-p"
+nozzle2PCompIdx = "nozzle2-P"
+rotaryEngineControllerCompIdx = "rotary-engine-controller"
+boostersControllerCompIdx = "boosters-controller"
+
+boostersNozzle1T = (boostersObjIdx, nozzle1TCompIdx)
+boostersNozzle1P = (boostersObjIdx, nozzle1PCompIdx)
+boostersNozzle2T = (boostersObjIdx, nozzle2TCompIdx)
+boostersNozzle2P = (boostersObjIdx, nozzle2PCompIdx)
+boostersController = (boostersObjIdx, boostersControllerCompIdx)
+
+rotaryEngine1ObjIdx, rotaryEngine2ObjIdx, boostersObjIdx :: DeviceObjectIndex
+rotaryEngine1ObjIdx = "left-rotary-engine-device"
+rotaryEngine2ObjIdx = "right-rotary-engine-device"
+boostersObjIdx = "boosters-device"
+
+boostersDeviceIdx :: DeviceIndex
+boostersDeviceIdx = (boostersObjIdx, boostersControllerCompIdx)
+boostersTUAddr :: PhysicalAddress
+boostersTUAddr = "00:02" -- (row, column)
+
+boostersDef :: Hdl DeviceIndex
 boostersDef = do
-    sensor aaa_t_25 nozzle1T temperaturePar
-    sensor aaa_t_25 nozzle2T temperaturePar
-    sensor aaa_p_02 nozzle1P pressurePar
-    sensor aaa_p_02 nozzle2P pressurePar
+    sensor aaa_t_25 nozzle1TCompIdx temperaturePar
+    sensor aaa_t_25 nozzle2TCompIdx temperaturePar
+    sensor aaa_p_02 nozzle1PCompIdx pressurePar
+    sensor aaa_p_02 nozzle2PCompIdx pressurePar
+    controller aaa_controller_01 boostersControllerCompIdx
+    return boostersDeviceIdx
 
-rotaryEngineDef :: Hdl ()
-rotaryEngineDef = do
-    sensor aaa_t_25 nozzleTemerature temperaturePar
-    sensor aaa_p_02 nozzlePressure   pressurePar
+rotaryEngineDef :: DeviceObjectIndex -> Hdl DeviceIndex
+rotaryEngineDef deviceObjIdx = do
+    sensor aaa_t_25 nozzleTemeratureCompIdx temperaturePar
+    sensor aaa_p_02 nozzlePressureCompIdx   pressurePar
+    controller aaa_controller_01 rotaryEngineControllerCompIdx
+    return (deviceObjIdx, rotaryEngineControllerCompIdx)
 
-{-  00     01     02    03     04
-
-00         R1     B     R2
-01         |      |     |
-02         RTUR1  RTUB  RTUR2 
-03           |____|_____|
-04                IRTU
-05                |
-06                |
-07                |
-08                LC
+{-
+Sensors            [2t, 2p]
+            [1t, 1p]  :   [1t, 1p]
+               :      :      :
+Devices        R1     B     R2
+               :      :      :
+Controllers    R1C    RB    R2C
+               |      |      |
+Network        |      |      |
+01             RTUR1  RTUB  RTUR2 
+02              |_____|_____|
+03                    |
+04                    |
+05                    |
+06                    |
+07                    LC
+        00     01     02    03     04
 -}
 
-boostersAddr = "00:02" -- (row, column)
+-- terminal units are computers inside network
+-- controllers are microschemes inside device
+-- controllers have interface
 
 networkDef :: Hndl ()
 networkDef = do
-    controllerR1 <- terminalUnit "02:01" controllerDef "controller1-left rotary engine" 
-    controllerRB <- terminalUnit "02:02" controllerDef "controllerb-boosters"
-    controllerR2 <- terminalUnit "02:03" controllerDef "controller2-right rotary engine"
-    iController  <- terminalUnit "04:02" controllerDef "intermediate controller"
-    rotE1 <- remoteDevice "00:01" rotaryEngineDef "left rotary engine"
-    rotE2 <- remoteDevice "00:03" rotaryEngineDef "right rotary engine"
-    boost <- remoteDevice boostersAddr boostersDef "boosters"
-    lc    <- logicControl "08:02" "main logic control"
-    connection [rotE1, controllerR1, iController] "conn to left rot e"
-    connection [rotE2, controllerR2, iController] "conn to right rot e"
-    connection [boost, controllerRB, iController] "conn to boosters"
-    connection [iController, lc] "conn to iController"
-    
-boostersNozzle1T, boostersNozzle2T :: ComponentInstanceIndex
-boostersNozzle1P, boostersNozzle2P :: ComponentInstanceIndex
-boostersNozzle1T = (boostersAddr, nozzle1T)
-boostersNozzle1P = (boostersAddr, nozzle1P)
-boostersNozzle2T = (boostersAddr, nozzle2T)
-boostersNozzle2P = (boostersAddr, nozzle2P)
+    iBoosters      <- remoteDevice boostersDef "boosters"
+    iRotaryEngine1 <- remoteDevice (rotaryEngineDef rotaryEngine1ObjIdx) "left rotary engine"
+    iRotaryEngine2 <- remoteDevice (rotaryEngineDef rotaryEngine2ObjIdx) "right rotary engine"
 
+    iBoostersTU      <- terminalUnit boostersTUAddr "boosters terminal unit"
+    iRotaryEngine1TU <- terminalUnit "02:01" "left rotary engine terminal unit"
+    iRotaryEngine2TU <- terminalUnit "02:03" "right rotary engine terminal unit"
+    
+    linkedDevice iBoosters iBoostersTU
+    linkedDevice iRotaryEngine1 iRotaryEngine1TU
+    linkedDevice iRotaryEngine2 iRotaryEngine2TU
+    
+    iLogicControl <- logicControl "08:02" "main logic control"
+    
+    link iLogicControl iBoostersTU
+    link iLogicControl iRotaryEngine1TU
+    link iLogicControl iRotaryEngine2TU
+    
 

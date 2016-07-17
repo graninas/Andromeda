@@ -21,14 +21,15 @@ import Andromeda.Common
 
 import Control.Monad.State.Class
 import Control.Monad.Free
+import Control.Lens
 import Data.Typeable
 import qualified Data.Map as M
 import qualified Data.ByteString.Char8 as BS
 
 -- | Component instance.
 -- Abstract data type.
-data DeviceComponent = Sensor Par Guid
-                     | Controller Guid
+data DeviceComponent = Sensor Par
+                     | Controller
     deriving (Show, Eq)
 
 -- | Instance of Device.
@@ -38,12 +39,12 @@ newtype Device = DeviceImpl (M.Map ComponentIndex DeviceComponent)
     deriving (Show, Eq)
 
 blankDevice = DeviceImpl M.empty
-   
+
 addSensor :: ComponentDef -> ComponentIndex -> Par -> Device -> Device
-addSensor cd idx p (DeviceImpl m) = DeviceImpl $ M.insert idx (Sensor p (componentGuid cd)) m
+addSensor cd idx par (DeviceImpl m) = DeviceImpl $ M.insert idx (Sensor par) m
 
 addController :: ComponentDef -> ComponentIndex -> Device -> Device
-addController cd idx (DeviceImpl m) = DeviceImpl $ M.insert idx (Controller (componentGuid cd)) m
+addController cd idx (DeviceImpl m) = DeviceImpl $ M.insert idx (Controller) m
 
 removeComponent :: ComponentIndex -> Device -> Device
 removeComponent idx (DeviceImpl d) = DeviceImpl $ M.delete idx d
@@ -56,10 +57,10 @@ getComponent idx (DeviceImpl m) = M.lookup idx m
 
 -- TODO: remove hack with unsafeCoerce.
 readSensor :: DeviceComponent -> Maybe (Measurement tag)
-readSensor (Sensor p _) = Just (toMeasurement p)
+readSensor (Sensor p) = Just (toMeasurement p)
 readSensor _ = Nothing
 
 -- TODO: comparing of measurement units?
 setSensor :: Typeable tag => DeviceComponent -> Measurement tag -> Maybe DeviceComponent
-setSensor (Sensor p g) m = Just (Sensor (toPar m) g)
+setSensor (Sensor p) m = Just (Sensor (toPar m))
 setSensor _ _ = error "Setting parameter to not a sensor." 
