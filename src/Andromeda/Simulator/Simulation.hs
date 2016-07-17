@@ -85,6 +85,7 @@ instance HndlInterpreter SimCompilerState where
        m <- use $ composingDevice . composingSensors
        let m' = M.mapKeys (\compIdx -> (deviceObjIdx, compIdx)) m
        simulationModel . sensorsModel %= (M.union m')
+       composingDevice .= emptyComposingDevice
        return $ mkRemoteDeviceInterface devIdx
    onTerminalUnitDef pa d = do
        debugPrint ("Compiling TerminalUnitDef", pa)
