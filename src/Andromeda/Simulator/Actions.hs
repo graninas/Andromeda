@@ -16,9 +16,12 @@ import Control.Concurrent.STM
 import Control.Lens
 import Data.Maybe
 
-f (Par (FloatValue v) t) = Par (FloatValue (v + 1.0)) t
+-- TODO: static type checking.
+fUpGen (Par (FloatValue v) t) = Par (FloatValue (v + 1.0)) t
+fDownGen (Par (FloatValue v) t) = Par (FloatValue (v - 1.0)) t
 
-floatIncrementGen = StepGenerator f
+floatIncrementGen = StepGenerator fUpGen
+floatDecrementGen = StepGenerator fDownGen
 
 getSensorNode :: ComponentInstanceIndex -> SimState SensorNode
 getSensorNode idx = do
