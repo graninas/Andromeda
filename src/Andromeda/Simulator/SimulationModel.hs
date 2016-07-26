@@ -32,10 +32,10 @@ data SensorNode = SensorNode
     , _producing :: TMVar Bool
     }
 
-type ComponentInstanceIndex = (DeviceObjectIndex, ComponentIndex)
+type ComponentInstanceIndex = (PhysicalAddress, ComponentIndex)
 
 type SensorsModel     = M.Map ComponentInstanceIndex SensorNode
-type ControllersModel = M.Map ComponentInstanceIndex ControllerNode
+type ControllersModel = M.Map PhysicalAddress ControllerNode
 type NetworkScheme    = M.Map String String -- TODO
 
 data SimulationModel = SimulationModel

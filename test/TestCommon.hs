@@ -91,37 +91,35 @@ nozzle2PCompIdx = "nozzle2-P"
 rotaryEngineControllerCompIdx = "rotary-engine-controller"
 boostersControllerCompIdx = "boosters-controller"
 
-boostersNozzle1T = (boostersObjIdx, nozzle1TCompIdx)
-boostersNozzle1P = (boostersObjIdx, nozzle1PCompIdx)
-boostersNozzle2T = (boostersObjIdx, nozzle2TCompIdx)
-boostersNozzle2P = (boostersObjIdx, nozzle2PCompIdx)
-boostersController = (boostersObjIdx, boostersControllerCompIdx)
-
-rotaryEngine1ObjIdx, rotaryEngine2ObjIdx, boostersObjIdx :: DeviceObjectIndex
-rotaryEngine1ObjIdx = "left-rotary-engine-device"
-rotaryEngine2ObjIdx = "right-rotary-engine-device"
-boostersObjIdx = "boosters-device"
-
-boostersDeviceIdx :: DeviceIndex
-boostersDeviceIdx = (boostersObjIdx, boostersControllerCompIdx)
+boostersAddr :: PhysicalAddress
+boostersAddr = "01:02" -- (row, column)
 boostersTUAddr :: PhysicalAddress
-boostersTUAddr = "00:02" -- (row, column)
+boostersTUAddr = "03:02" -- (row, column)
 
-boostersDef :: Hdl DeviceIndex
+boostersNozzle1T   = (boostersAddr, nozzle1TCompIdx)
+boostersNozzle1P   = (boostersAddr, nozzle1PCompIdx)
+boostersNozzle2T   = (boostersAddr, nozzle2TCompIdx)
+boostersNozzle2P   = (boostersAddr, nozzle2PCompIdx)
+boostersController = (boostersAddr, boostersControllerCompIdx)
+
+--rotaryEngine1ObjIdx, rotaryEngine2ObjIdx, boostersObjIdx :: DeviceObjectIndex
+--rotaryEngine1ObjIdx = "left-rotary-engine-device"
+--rotaryEngine2ObjIdx = "right-rotary-engine-device"
+--boostersObjIdx = "boosters-device"
+
+boostersDef :: Hdl ()
 boostersDef = do
     sensor aaa_t_25 nozzle1TCompIdx temperaturePar
     sensor aaa_t_25 nozzle2TCompIdx temperaturePar
     sensor aaa_p_02 nozzle1PCompIdx pressurePar
     sensor aaa_p_02 nozzle2PCompIdx pressurePar
     controller aaa_controller_01 boostersControllerCompIdx
-    return boostersDeviceIdx
 
-rotaryEngineDef :: DeviceObjectIndex -> Hdl DeviceIndex
-rotaryEngineDef deviceObjIdx = do
+rotaryEngineDef :: Hdl ()
+rotaryEngineDef = do
     sensor aaa_t_25 nozzleTemeratureCompIdx temperaturePar
     sensor aaa_p_02 nozzlePressureCompIdx   pressurePar
     controller aaa_controller_01 rotaryEngineControllerCompIdx
-    return (deviceObjIdx, rotaryEngineControllerCompIdx)
 
 {-
 Sensors            [2t, 2p]
@@ -129,41 +127,39 @@ Sensors            [2t, 2p]
                :      :      :
 Devices        R1     B     R2
                :      :      :
-Controllers    R1C    RB    R2C
-               |      |      |
-Network        |      |      |
-01             RTUR1  RTUB  RTUR2 
-02              |_____|_____|
-03                    |
-04                    |
+01             R1C    BC    R2C
+02             |      |      |
+03             RTUR1  RTUB  RTUR2 
+04              |_____|_____|
 05                    |
 06                    |
-07                    LC
+07                    |
+08                    |
+09                    LC
         00     01     02    03     04
 -}
 
 -- terminal units are computers inside network
--- controllers are microschemes inside device
--- controllers have interface
+-- controllers are computers inside device
 
 networkDef :: Hndl ()
 networkDef = do
-    iBoosters      <- remoteDevice boostersDef "boosters"
-    iRotaryEngine1 <- remoteDevice (rotaryEngineDef rotaryEngine1ObjIdx) "left rotary engine"
-    iRotaryEngine2 <- remoteDevice (rotaryEngineDef rotaryEngine2ObjIdx) "right rotary engine"
+    iBoosters <- remoteDevice boostersAddr boostersDef "boosters"
+--    iRotaryEngine1 <- remoteDevice (rotaryEngineDef rotaryEngine1ObjIdx) "left rotary engine"
+--    iRotaryEngine2 <- remoteDevice (rotaryEngineDef rotaryEngine2ObjIdx) "right rotary engine"
 
     iBoostersTU      <- terminalUnit boostersTUAddr "boosters terminal unit"
-    iRotaryEngine1TU <- terminalUnit "02:01" "left rotary engine terminal unit"
-    iRotaryEngine2TU <- terminalUnit "02:03" "right rotary engine terminal unit"
+--    iRotaryEngine1TU <- terminalUnit "02:01" "left rotary engine terminal unit"
+--    iRotaryEngine2TU <- terminalUnit "02:03" "right rotary engine terminal unit"
     
     linkedDevice iBoosters iBoostersTU
-    linkedDevice iRotaryEngine1 iRotaryEngine1TU
-    linkedDevice iRotaryEngine2 iRotaryEngine2TU
+--    linkedDevice iRotaryEngine1 iRotaryEngine1TU
+--    linkedDevice iRotaryEngine2 iRotaryEngine2TU
     
     iLogicControl <- logicControl "08:02" "main logic control"
     
     link iLogicControl iBoostersTU
-    link iLogicControl iRotaryEngine1TU
-    link iLogicControl iRotaryEngine2TU
+--    link iLogicControl iRotaryEngine1TU
+--    link iLogicControl iRotaryEngine2TU
     
 

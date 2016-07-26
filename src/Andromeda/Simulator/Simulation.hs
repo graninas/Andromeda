@@ -103,21 +103,21 @@ instance HdlInterpreter SimCompilerState where
        composingDevice . composingController .= (Just (compIdx, cn))
 
 instance HndlInterpreter SimCompilerState where
-   onRemoteDeviceDef hdl d = do
-       debugPrint ("Compiling DeviceDef", d)
-       devIdx@(deviceObjIdx, _) <- interpretHdl hdl
+   onDeviceDef pa hdl d = do
+       debugPrint ("Compiling DeviceDef", pa, d)
+       interpretHdl hdl
        m <- use $ composingDevice . composingSensors
-       let m' = M.mapKeys (\compIdx -> (deviceObjIdx, compIdx)) m
+       let m' = M.mapKeys (\compIdx -> (pa, compIdx)) m
        simulationModel . sensorsModel %= (M.union m')
        composingDevice .= emptyComposingDevice
-       return $ mkRemoteDeviceInterface devIdx
+       return $ mkDeviceInterface pa
    onTerminalUnitDef pa d = do
        debugPrint ("Compiling TerminalUnitDef", pa)
        return $ mkTerminalUnitInterface pa
    onLogicControlDef pa d = do
        debugPrint ("Compiling LogicControlDef", pa)
        return $ mkInterface pa
-   onLinkedDeviceDef (RemoteDeviceInterface rdi) (TerminalUnitInterface tui) = do
+   onLinkedDeviceDef (DeviceInterface rdi) (TerminalUnitInterface tui) = do
        debugPrint ("Compiling LinkedDeviceDef", rdi, tui)
        return ()
    onLinkDef interf tui = do
@@ -132,7 +132,6 @@ compileSimModel hndl = do
     (CompilerState m _ _) <- S.execStateT compiler emptyCompilerState
     return m
     
--- TODO: make simulation work in State monad or even in STM monad.
 simulation :: Pipe req resp -> Process req resp -> SimState ()
 simulation pipe process = do
     req <- liftIO $ getRequest pipe

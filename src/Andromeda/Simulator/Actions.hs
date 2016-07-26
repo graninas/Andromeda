@@ -17,7 +17,7 @@ import Control.Lens
 import Data.Maybe
 
 -- TODO: static type checking.
-fUpGen (Par (FloatValue v) t) = Par (FloatValue (v + 1.0)) t
+fUpGen   (Par (FloatValue v) t) = Par (FloatValue (v + 1.0)) t
 fDownGen (Par (FloatValue v) t) = Par (FloatValue (v - 1.0)) t
 
 floatIncrementGen = StepGenerator fUpGen
