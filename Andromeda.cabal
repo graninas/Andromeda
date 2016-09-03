@@ -87,6 +87,8 @@ executable Andromeda-exe
   build-depends:       base
                      , Andromeda
                      , hsqml
+                     , directory
+                     , text
   default-language:    Haskell2010
 
 test-suite Andromeda-test
