@@ -8,7 +8,7 @@ resolver: lts-5.5
 packages:
 - '.'
 # Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)
-extra-deps: [arrows-0.4.4.1, Stream-0.4.7.2, lazysmallcheck-0.6, clock-0.7.2]
+extra-deps: [arrows-0.4.4.1, Stream-0.4.7.2, lazysmallcheck-0.6, clock-0.7.2, hsqml-0.3.4.0]
 
 # Override default flag values for local packages and extra-deps
 flags: {}
@@ -28,8 +28,8 @@ extra-package-dbs: []
 # arch: x86_64
 
 # Extra directories used by stack for building
-# extra-include-dirs: [/path/to/dir]
-# extra-lib-dirs: [/path/to/dir]
+extra-include-dirs: [/opt/Qt/5.1.1/gcc_64/include]
+extra-lib-dirs: [/opt/Qt/5.1.1/gcc_64/lib]
 
 # Allow a newer minor version of GHC than the snapshot specifies
 # compiler-check: newer-minor
