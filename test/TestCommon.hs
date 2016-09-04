@@ -9,7 +9,6 @@ module TestCommon where
 import Andromeda.Common
 import Andromeda.LogicControl
 import Andromeda.Calculations
-import Andromeda.Assets
 import Andromeda.Hardware.Types
 import Andromeda.Hardware.Description
 import Andromeda.Hardware.Parameter

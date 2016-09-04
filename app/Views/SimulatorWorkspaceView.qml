@@ -8,4 +8,10 @@ Rectangle {
         id: helloWorld
         text: "Network workspace"
     }
+    
+    
+    Rectangle {
+        
+        
+    }
 }
