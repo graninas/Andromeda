@@ -2,8 +2,14 @@ import QtQuick 2.0
 import QtQuick.Controls 1.0
 
 ApplicationWindow {
+    id: andromedaWindow
+    title: "Andromeda Software"
+    width: 1024
+    height: 768
+
     visible: true
     toolBar: ToolBar {
+        id: toolbar
         Row {
             ToolButton {
                 id: simulatorPlayButton
@@ -15,16 +21,13 @@ ApplicationWindow {
         }
     }
     
-    Rectangle {
-        id: shellViewRect
-        width: 1024
-        height: 768
+    Loader { 
+        id: workspaceLoader
+        width: andromedaWindow.width
+        height: andromedaWindow.height - toolbar.height
+    }
         
-        Loader { id: workspaceLoader }
-        
-        Component.onCompleted: {
-            workspaceLoader.source = vmWorkspace
-        }
-        
+    Component.onCompleted: {
+        workspaceLoader.source = vmWorkspace
     }
 }
