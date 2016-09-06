@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveDataTypeable #-}
+
 module Main where
 
 import Andromeda
@@ -8,16 +10,12 @@ import Graphics.QML as QML
 import System.Directory
 import qualified Data.Text.Encoding as T
 import qualified Data.Text as T
+import Data.Typeable
+import Data.Proxy
 import Control.Concurrent.MVar
 import Control.Monad (when)
 
 type SimulatorPipe = Pipe In Out
-
-data Workspace = SimulatorWorkspace
-    { workspaceView :: String 
-    , workspaceSimPipe :: SimulatorPipe
-    , workspaceSimModel :: SimulationModel
-    }
 
 data Out = Out String
          | OutValueSource ValueSource
@@ -67,33 +65,46 @@ toggleSimulationOff pipe simModel ref = do
             h <- takeMVar ref
             stopSimulation h
             print "Simulation stopped."
-    
-createSimulatorWorkspaceViewModel p m = do
-    ref <- newEmptyMVar
-    return [ defMethod' "vmToggleSimulation" (\_ checked -> 
-        if checked
-           then toggleSimulationOn p m ref
-           else toggleSimulationOff p m ref) ]
-    
-createWorkspaceViewModel (SimulatorWorkspace view pipe simModel) = do
-    let file = T.pack $ view ++ "View.qml"
-    methods <- createSimulatorWorkspaceViewModel pipe simModel
-    return (file, methods)
-    
-shellViewModelClass :: (T.Text, [Member ()]) -> IO (Class ())
-shellViewModelClass (workspaceFile, methods) = newClass $
-    (defPropertyRO' "vmWorkspace" (\_ -> return workspaceFile :: IO T.Text))
-    : methods
 
-createShellViewModel workspace = do
-    vm <- createWorkspaceViewModel workspace
-    viewModelType <- shellViewModelClass vm
-    viewModel <- newObject viewModelType ()
-    return viewModel
+{-
+simulatorVMClass :: IO (Class ())
+simulatorVMClass = newClass $
+    defPropertyRO' "vmSimulatorText" (\_ -> return "This is simulator.")
+    
+shellVMClass :: IO (Class ())
+shellVMClass = newClass $
+-}
+    
+data ShellVM = ShellVM
+    { _shellWorkspaceVM :: ObjRef WorkspaceVM
+    , _shellWorkspaceFile :: T.Text
+    } deriving (Typeable)
+
+data WorkspaceVM = SimulatorWorkspaceVM
+    { _workspaceText :: T.Text
+    , _workspaceSimPipe :: SimulatorPipe
+    , _workspaceSimModel :: SimulationModel
+    } deriving (Typeable)
+
+instance DefaultClass ShellVM where
+    classMembers =
+        [ defPropertyRO' "vmWorkspace" (return . _shellWorkspaceVM . fromObjRef)
+        , defPropertyRO' "vmWorkspaceFile" (return . _shellWorkspaceFile . fromObjRef)
+        ]
+    
+instance DefaultClass WorkspaceVM where
+    classMembers =
+        [ defPropertyRO' "vmText" (return . _workspaceText . fromObjRef)
+        ]
+    
+createShellVM (workspaceFile, workspaceModel) = do
+    workspaceVM <- newObjectDC workspaceModel
+    let shellVM = ShellVM workspaceVM workspaceFile
+    newObjectDC shellVM
     
 startUiApplication workspace = do
     let view = fileDocument "app/Views/ShellView.qml"
-    viewModel <- createShellViewModel workspace
+    viewModel <- createShellVM workspace
 
     runEngineLoop QML.defaultEngineConfig {
         initialDocument = view,
@@ -110,7 +121,6 @@ main = do
     print "Andromeda Control Software, version 0.1"
     print "Loading sample spaceship network..."
     (pipe, simModel) <- makeSimulator
-    
-    
-    let workspace = SimulatorWorkspace "SimulatorWorkspace" pipe simModel
-    startUiApplication workspace
+    let workspace = SimulatorWorkspaceVM (T.pack "hello") pipe simModel
+    let workspaceFile = T.pack $ "SimulatorWorkspaceView.qml"
+    startUiApplication (workspaceFile, workspace)

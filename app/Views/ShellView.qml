@@ -28,6 +28,6 @@ ApplicationWindow {
     }
         
     Component.onCompleted: {
-        workspaceLoader.source = vmWorkspace
+        workspaceLoader.source = vmWorkspaceFile
     }
 }

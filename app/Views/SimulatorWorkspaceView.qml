@@ -10,16 +10,11 @@ Row {
         width: 200
         height: parent.height
 
-        Rectangle {
-            border.width: 1
-            border.color: "gold"
-            height: parent.height
+        Text {
             width: parent.width
-                        
-            Text {
-                font.pixelSize: 14
-                text: "network items going here"
-            }
+            text: vmWorkspace.vmText
+            color: "green"
+            font.pointSize: 11
         }
     }
     
