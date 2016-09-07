@@ -42,8 +42,9 @@ instance HdlInterpreter DeviceIOState where
 
 -- | Makes a real instanse of device defined by the language.
 -- Operates in the State monad.
-makeDevice :: Hdl a -> Device
-makeDevice hdl = execState (interpretHdl hdl) blankDevice
+makeDevice :: Hdl a -> DeviceId -> Device
+makeDevice hdl dId = let d = execState (interpretHdl hdl) blankDevice
+                     in setDeviceId dId d
 
 readParameter :: ComponentIndex -> Device -> Maybe (Measurement tag)
 readParameter compIdx dev = do
@@ -62,10 +63,10 @@ setParameterIO devIO compIdx m = do
 
 -- | Makes a real instanse of device defined by the language.
 -- Operates in the IO monad.
-makeDeviceIO :: Hdl a -> IO DeviceIO
-makeDeviceIO hdl = do
+makeDeviceIO :: Hdl a -> DeviceId -> IO DeviceIO
+makeDeviceIO hdl dId = do
     dev <- execStateT (interpretHdl hdl) blankDevice
-    newIORef dev
+    newIORef (setDeviceId dId dev)
 
 -- | Extracts device instance from IO container.
 readDeviceIO = readIORef

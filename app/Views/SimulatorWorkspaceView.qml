@@ -1,66 +1,62 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.0
 
-Row {
-    anchors.margins: 5
+Rectangle {
     anchors.fill: parent
-
-    Column {
+    anchors.margins: 5
+    Row {
         spacing: 5
-        width: 200
-        height: parent.height
 
-        Rectangle {
-            border.width: 1
-            border.color: "gold"
-            height: parent.height
-            width: parent.width
+        Column {
+            spacing: 5
+            width: 200
 
-            ListView {
-                id: devicesList
-                anchors.fill: parent
-                anchors.margins: 3
-                currentIndex: 0
-                clip: true
-                focus: true
-                
-                Rectangle {
-                    anchors.fill: parent
-                    color: "lightgrey"
-                    z: -1
-                    radius: 2
+            Rectangle {
+                id: simulatorToolbox
+                height: 38
+                anchors.margins: 5
+                width: parent.width
+                border.width: 1
+                border.color: "blue"
+                gradient: Gradient {
+                    GradientStop { position: 0.0; color: "white" }
+                    GradientStop { position: 1.0; color: "lightblue" }
                 }
                 
-                model: vmWorkspace
-                
+                Button {
+                    id: simulatorToggleButton
+                    anchors.left: parent.left
+                    anchors.leftMargin: 3
+                    anchors.verticalCenter: simulatorToolbox.verticalCenter
+                    width: 32
+                    height: 32
+                    visible: true
+                    checkable: true
+                    iconSource: "Images/Simulator.png"
+                    onClicked: vmWorkspace.vmToggleSimulation(simulatorToggleButton.checked)
+                }
+            }
+            
+            ListView {
+                model: vmWorkspace.vmDevices
                 delegate: Text {
-                    width: parent.width
+                    font.pointSize: 12
                     text: vmText
-                    color: "green"
-                    font.pointSize: 11
-                    z: 5
-                    
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: { devicesList.currentIndex = index }
-                    }
+                    color: "black"
                 }
             }
         }
-    }
-    
-    Column {
-        spacing: 5
-        width: parent.width - 200
-        height: parent.height
         
-        Rectangle {
-            anchors.margins: 3
-            border.width: 1
-            border.color: "brown"
-            height: parent.height
-            width: parent.width
+        Column {
+            spacing: 5
+            
+            Rectangle {
+                anchors.margins: 3
+                border.width: 1
+                border.color: "brown"
+                height: parent.height
+                width: parent.width
+            }
         }
     }
-
 }

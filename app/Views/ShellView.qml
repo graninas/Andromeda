@@ -8,23 +8,11 @@ ApplicationWindow {
     height: 768
 
     visible: true
-    toolBar: ToolBar {
-        id: toolbar
-        Row {
-            ToolButton {
-                id: simulatorPlayButton
-                visible: true
-                checkable: true
-                iconSource: "Images/Simulator.png"
-                onClicked: vmToggleSimulation(simulatorPlayButton.checked)
-            }
-        }
-    }
     
     Loader { 
         id: workspaceLoader
-        width: andromedaWindow.width
-        height: andromedaWindow.height - toolbar.height
+//        width: andromedaWindow.width
+//        height: andromedaWindow.height
     }
         
     Component.onCompleted: {

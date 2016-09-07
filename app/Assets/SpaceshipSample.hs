@@ -52,7 +52,7 @@ rotaryEngineDef = do
 networkDef :: Hndl ()
 networkDef = do
     iBoosters <- remoteDevice boostersAddr boostersDef "boosters"
-    iBoostersTU      <- terminalUnit boostersTUAddr "boosters terminal unit"
+    iBoostersTU <- terminalUnit boostersTUAddr "boosters terminal unit"
     linkedDevice iBoosters iBoostersTU
     iLogicControl <- logicControl "08:02" "main logic control"
     link iLogicControl iBoostersTU

@@ -8,6 +8,7 @@ module Andromeda.Simulator.Simulation
     , simulation
     , startSimulation
     , stopSimulation
+    , SimulatorHandle
     ) where
 
 import Andromeda.Hardware
@@ -41,6 +42,8 @@ makeLenses ''ComposingDevice
 makeLenses ''CompilerState
 
 type SimCompilerState = S.StateT CompilerState IO
+
+type SimulatorHandle = ThreadId
 
 workerThreadsDelay = 10 -- ms
 
