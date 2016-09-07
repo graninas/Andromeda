@@ -38,10 +38,16 @@ Rectangle {
             }
             
             ListView {
+                id: devicesList
+                width: parent.width
+                height: 400
+                spacing: 3
                 model: vmWorkspace.vmDevices
                 delegate: Text {
+                    anchors.margins: 5
+                    width: parent.width
                     font.pointSize: 12
-                    text: vmText
+                    text: modelData.vmDeviceName
                     color: "black"
                 }
             }

@@ -81,7 +81,7 @@ instance SignalKeyClass DevicesChanged where
     
 instance DefaultClass WorkspaceVM where
   classMembers = [ defMethod' "vmToggleSimulation" toggleSim'
-                 , defPropertySigRO "vmDevicesChanged" (Proxy :: Proxy DevicesChanged) getDevices']
+                 , defPropertySigRO "vmDevices" (Proxy :: Proxy DevicesChanged) getDevices']
     where
         toggleSim' :: ObjRef WorkspaceVM -> Bool -> IO ()
         toggleSim' objRef toggle = do
