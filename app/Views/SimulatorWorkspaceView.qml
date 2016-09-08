@@ -9,7 +9,7 @@ Rectangle {
 
         Column {
             spacing: 5
-            width: 200
+            width: 300
 
             Rectangle {
                 id: simulatorToolbox
@@ -37,19 +37,46 @@ Rectangle {
                 }
             }
             
+            Component {
+                id: deviceItemComponent
+                Item {
+                    id: deviceItem
+                    width: parent.width
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.leftMargin: 10
+                    anchors.rightMargin: 10
+                    height: 30
+                    
+                    Text {
+                        width: parent.width
+                        font.pointSize: 12
+                        text: modelData.vmDeviceName
+                        color: deviceItem.ListView.isCurrentItem ? "red" : "black"
+                    }
+                    
+                    MouseArea {
+                        z: 1
+                        hoverEnabled: false
+                        anchors.fill: parent
+                        onClicked: {
+                            deviceItem.ListView.view.currentIndex = index
+                            deviceItem.forceActiveFocus()                            
+                        }
+                    }
+                }
+            }
+            
             ListView {
                 id: devicesList
+                clip: true
                 width: parent.width
                 height: 400
                 spacing: 3
                 model: vmWorkspace.vmDevices
-                delegate: Text {
-                    anchors.margins: 5
-                    width: parent.width
-                    font.pointSize: 12
-                    text: modelData.vmDeviceName
-                    color: "black"
-                }
+                highlight: Rectangle { color: "lightsteelblue"; radius: 5 }
+                focus: true
+                delegate: deviceItemComponent
             }
         }
         
