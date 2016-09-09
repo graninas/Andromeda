@@ -2,6 +2,8 @@ import QtQuick 2.0
 import QtQuick.Controls 1.0
 
 Rectangle {
+    height: parent.height
+    width: parent.width
     anchors.fill: parent
     anchors.margins: 5
     Row {
@@ -10,12 +12,14 @@ Rectangle {
         Column {
             spacing: 5
             width: 300
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
 
             Rectangle {
                 id: simulatorToolbox
                 height: 38
-                anchors.margins: 5
-                width: parent.width
+                anchors.left: parent.left
+                anchors.right: parent.right
                 border.width: 1
                 border.color: "blue"
                 gradient: Gradient {
@@ -41,7 +45,6 @@ Rectangle {
                 id: deviceItemComponent
                 Item {
                     id: deviceItem
-                    width: parent.width
                     anchors.left: parent.left
                     anchors.right: parent.right
                     anchors.leftMargin: 10
@@ -66,17 +69,17 @@ Rectangle {
                     }
                 }
             }
-            
             ListView {
                 id: devicesList
-                clip: true
-                width: parent.width
+                anchors.left: parent.left
+                anchors.right: parent.right
                 height: 400
                 spacing: 3
-                model: vmWorkspace.vmDevices
-                highlight: Rectangle { color: "lightsteelblue"; radius: 5 }
+                clip: true
                 focus: true
+                model: vmWorkspace.vmDevices
                 delegate: deviceItemComponent
+                highlight: Rectangle { color: "lightsteelblue"; radius: 5 }
             }
         }
         

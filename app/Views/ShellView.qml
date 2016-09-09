@@ -6,16 +6,15 @@ ApplicationWindow {
     title: "Andromeda Software"
     width: 1024
     height: 768
-
     visible: true
     
-    Loader { 
-        id: workspaceLoader
-//        width: andromedaWindow.width
-//        height: andromedaWindow.height
+    Rectangle {
+        anchors.fill: parent
+        anchors.margins: 0
+        border.width: 3
+        border.color: "#929292"
+        Loader { id: workspaceLoader }
     }
         
-    Component.onCompleted: {
-        workspaceLoader.source = vmWorkspaceFile
-    }
+    Component.onCompleted: { workspaceLoader.source = vmWorkspaceFile }
 }
