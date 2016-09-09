@@ -9,10 +9,10 @@ ApplicationWindow {
     visible: true
     
     Rectangle {
+        id: workspaceLoaderArea
         anchors.fill: parent
-        anchors.margins: 0
         border.width: 3
-        border.color: "#929292"
+        border.color: "#CCCCCC"
         Loader { id: workspaceLoader }
     }
         
