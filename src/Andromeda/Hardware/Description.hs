@@ -11,7 +11,7 @@ type Description = BS.ByteString
 
 data ComponentClass
     = Sensors
-    | TerminalUnits
+    | Controllers
   deriving (Show, Read, Eq)
 
 -- | Class, manufacturer, description, serial number.
@@ -28,4 +28,4 @@ makeLenses ''ComponentDef
 component = ComponentDef
 
 sensors = Sensors
-terminalUnits = TerminalUnits
+controllers = Controllers

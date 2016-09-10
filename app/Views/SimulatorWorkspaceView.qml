@@ -46,7 +46,6 @@ RowLayout {
                 id: devicesArea
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                
                 border.width: 1
                 border.color: "#CBE2F0"
                 gradient: Gradient {
@@ -63,12 +62,7 @@ RowLayout {
                         anchors.right: parent.right
                         height: 30
                         
-                        Text {
-                            id: deviceName
-                            font.pointSize: 12
-                            text: modelData.vmDeviceName
-                            color: deviceItem.ListView.isCurrentItem ? "red" : "black"
-                        }
+                        Loader { source: "DeviceItemView.qml" }
                         
                         MouseArea {
                             z: 1
@@ -90,7 +84,12 @@ RowLayout {
                     focus: true
                     model: vmWorkspace.vmDevices
                     delegate: deviceItemComponent
-                    highlight: Rectangle { color: "lightsteelblue"; radius: 5 }
+                    highlight: Rectangle {
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        color: "lightsteelblue"
+                        radius: 5
+                    }
                 }
             }
         }

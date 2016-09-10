@@ -16,5 +16,5 @@ ApplicationWindow {
         Loader { id: workspaceLoader }
     }
         
-    Component.onCompleted: { workspaceLoader.source = vmWorkspaceFile }
+    Component.onCompleted: { workspaceLoader.source = vmWorkspaceView }
 }

@@ -87,7 +87,13 @@ executable Andromeda-exe
                      , hsqml
                      , directory
                      , text
-  other-modules:       Assets.SpaceshipSample
+  other-modules:      Assets.SpaceshipSample
+                    , SimulatorRuntime
+                    , ViewModels
+                    , ViewModels.DeviceComponentViewModel
+                    , ViewModels.DeviceViewModel
+                    , ViewModels.WorkspaceViewModel
+                    , ViewModels.ShellViewModel
   default-language:    Haskell2010
 
 test-suite Andromeda-test
