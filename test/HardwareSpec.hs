@@ -4,9 +4,6 @@ module HardwareSpec where
 import Andromeda
 import TestCommon
 
-import qualified Data.Map as M
-import qualified Data.ByteString.Char8 as BS
-import Data.Typeable
 import Test.Hspec
 
 spec = describe "Device runtime test." $ do

@@ -11,13 +11,14 @@ import Andromeda.Calculations
 
 import Control.Monad.Free
 import Prelude hiding (read)
+import qualified Data.ByteString.Char8 as BS
 
 -- Dummy types, should be designed later
 data Property = Time | Status
   deriving (Show, Read, Eq)
 data Command = Command String
   deriving (Show, Read, Eq)
-newtype Controller = Controller String
+newtype Controller = Controller BS.ByteString
   deriving (Show, Read, Eq)
 type CommandResult = Either String String
 

@@ -6,13 +6,10 @@ import Data.Typeable
 import Data.Data
 
 newtype Measurement a = Measurement Value
-  deriving (Show, Read, Eq)
+  deriving (Show, Read, Eq, Ord)
   
 instance ToValue (Measurement a) where
   toValue (Measurement v) = v
-
-
-
 
 toMeasurementV :: Value -> Measurement a
 toMeasurementV = Measurement

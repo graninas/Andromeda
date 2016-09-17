@@ -53,4 +53,3 @@ makeLenses ''SimulationModel
 emptySimModel = SimulationModel M.empty M.empty M.empty
 
 noGenerator = NoGenerator
-

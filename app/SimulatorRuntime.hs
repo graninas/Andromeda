@@ -34,12 +34,8 @@ getDeviceDefs = return
     
 process :: Process In Out
 process (SimAction act) = act >> return Ok
-process GetDevices = do
-    ds <- getDeviceDefs
-    return $ OutDevices ds
-process (GetValueSource idx) = do
-    v <- getValueSource idx
-    return $ OutValueSource v
+process GetDevices = getDeviceDefs >>= (return . OutDevices)
+process (GetValueSource idx) = getValueSource idx >>= (return . OutValueSource)
 
 runNetworkAct = SimAction $ runNetwork
 setGen1Act idx = SimAction $ setValueGenerator idx floatIncrementGen

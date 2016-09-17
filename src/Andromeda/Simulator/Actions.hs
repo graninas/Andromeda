@@ -1,10 +1,13 @@
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE GADTs #-}
 module Andromeda.Simulator.Actions where
 
 import Andromeda.Common
 import Andromeda.Hardware
 import Andromeda.Calculations
+import Andromeda.LogicControl
 import Andromeda.Simulator.SimulationModel
+import Andromeda.Simulator.HardwareHandle
 
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.Map as M
@@ -48,6 +51,21 @@ getValueSource idx = do
     sensor <- getSensorNode idx
     return $ sensor ^. valueSource
     
+getValueSources :: SimState (M.Map ComponentInstanceIndex ValueSource)
+getValueSources = do
+    model <- use sensorsModel
+    return $ M.map (\sensor -> sensor ^. valueSource) model
+    
 readValueSource :: ValueSource -> IO Par
 readValueSource vs = liftIO $ atomically $ readTVar vs
 
+getHardwareHandle :: SimState HardwareHandle
+getHardwareHandle = do
+    vss <- getValueSources
+    return $ HardwareHandle (readF vss)
+  where
+    readF valueSources (Controller addr) ci _ = do
+        let mbVs = valueSources ^. at (addr, ci)
+        assert (isJust mbVs) "Component not found" (addr, ci)
+        parVal <- readValueSource (fromJust mbVs)
+        return $ toMeasurement parVal

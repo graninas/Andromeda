@@ -22,14 +22,14 @@ import Control.Monad.Trans.State as S
 import Control.Monad.State.Class (MonadState(..))
 import Control.Lens
 
-newtype InterpreterSt = InterpreterSt
+newtype TestInterpreterSt = TestInterpreterSt
     { _debugPrintEnabled :: Bool }
 
-type TestCPInterpreter = StateT InterpreterSt IO
+type TestCPInterpreter = StateT TestInterpreterSt IO
 
-makeLenses ''InterpreterSt
+makeLenses ''TestInterpreterSt
 
-debugPrint_ :: (Show v, MonadState InterpreterSt m, MonadIO m) => v -> m ()
+debugPrint_ :: (Show v, MonadState TestInterpreterSt m, MonadIO m) => v -> m ()
 debugPrint_ v = do
     dp <- use debugPrintEnabled
     if dp then liftIO $ print v
@@ -49,9 +49,14 @@ instance InfrastructureScriptInterpreter TestCPInterpreter where
     onSendTo r v     = debugPrint_ ("SendTo", v)
     onGetCurrentTime = debugPrint_ "GetCurrentTime" >> return 10
 
-testInterpretControllerScript     debugPrint script = runStateT (interpretControllerScript script)     (InterpreterSt debugPrint)
-testInterpretInfrastructureScript debugPrint script = runStateT (interpretInfrastructureScript script) (InterpreterSt debugPrint)
-testInterpretControlProgram       debugPrint script = runStateT (interpretControlProgram script)       (InterpreterSt debugPrint)
+testInterpretControllerScript debugPrint script
+    = runStateT (interpretControllerScript script) (TestInterpreterSt debugPrint)
+    
+testInterpretInfrastructureScript debugPrint script
+    = runStateT (interpretInfrastructureScript script) (TestInterpreterSt debugPrint)
+    
+testInterpretControlProgram debugPrint script
+    = runStateT (interpretControlProgram script) (TestInterpreterSt debugPrint)
 
 start   = Command "start"
 stop    = Command "stop"
@@ -155,7 +160,7 @@ networkDef = do
 --    linkedDevice iRotaryEngine1 iRotaryEngine1TU
 --    linkedDevice iRotaryEngine2 iRotaryEngine2TU
     
-    iLogicControl <- logicControl "08:02" "main logic control"
+    iLogicControl <- logicControl "09:02" "main logic control"
     
     link iLogicControl iBoostersTU
 --    link iLogicControl iRotaryEngine1TU

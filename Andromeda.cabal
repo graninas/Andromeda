@@ -34,6 +34,7 @@ library
                       , Andromeda.Simulator.Simulation
                       , Andromeda.Simulator.SimulationModel
                       , Andromeda.Simulator.Actions
+                      , Andromeda.Simulator.HardwareHandle
                        
                       , Andromeda.Hardware
                       , Andromeda.Hardware.Types
@@ -115,14 +116,17 @@ test-suite Andromeda-test
                        clock >= 0.7.2,
                        parsec,
                        Andromeda
-  other-modules:       TestCommon,
-                       ControlProgramSpec,
-                       ControllerScriptSpec,
-                       FreeArrowSpec,
-                       HardwareSpec,
-                       ParsingTest,
-                       TranslationTest,
-                       Simulator.SimulationSpec
+  other-modules:       TestCommon
+                    , ControlProgramSpec
+                    , ControllerScriptSpec
+                    , FreeArrowSpec
+                    , HardwareSpec
+                    , ParsingTest
+                    , TranslationTest
+                    , Simulator.SimulationSpec
+                    , Simulator.TestCommon
+                    , Simulator.ControllerScriptRunSpec
+                       
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
 

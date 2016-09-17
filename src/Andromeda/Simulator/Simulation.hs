@@ -142,5 +142,6 @@ simulation pipe process = do
     liftIO $ sendResponse pipe resp
     simulation pipe process
 
+-- TODO: stop all child threads
 startSimulation pipe process simModel = forkIO $ void $ S.execStateT (simulation pipe process) simModel
 stopSimulation = killThread

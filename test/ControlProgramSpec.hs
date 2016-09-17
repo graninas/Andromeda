@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module ControlProgramSpec where
 
 import Andromeda
