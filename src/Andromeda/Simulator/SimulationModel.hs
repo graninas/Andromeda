@@ -35,7 +35,7 @@ data SensorNode = SensorNode
 type ComponentInstanceIndex = (PhysicalAddress, ComponentIndex)
 
 type SensorsModel     = M.Map ComponentInstanceIndex SensorNode
-type ControllersModel = M.Map PhysicalAddress ControllerNode
+type ControllersModel = M.Map ComponentInstanceIndex ControllerNode
 type NetworkScheme    = M.Map String String -- TODO
 
 data SimulationModel = SimulationModel
