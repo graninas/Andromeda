@@ -6,8 +6,7 @@ import Andromeda.Common
 import Andromeda.Hardware
 import Andromeda.Calculations
 import Andromeda.LogicControl
-import Andromeda.Simulator.SimulationModel
-import Andromeda.Simulator.HardwareHandle
+import Andromeda.Simulator.Simulation
 
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.Map as M
@@ -18,6 +17,8 @@ import Control.Concurrent
 import Control.Concurrent.STM
 import Control.Lens
 import Data.Maybe
+
+type SimHardwareHandle = HardwareHandle Controller
 
 -- TODO: static type checking.
 fUpGen   (Par (FloatValue v) t) = Par (FloatValue (v + 1.0)) t
@@ -59,12 +60,13 @@ getValueSources = do
 readValueSource :: ValueSource -> IO Par
 readValueSource vs = liftIO $ atomically $ readTVar vs
 
-getHardwareHandle :: SimState HardwareHandle
+getHardwareHandle :: SimState SimHardwareHandle
 getHardwareHandle = do
     vss <- getValueSources
     return $ HardwareHandle (readF vss)
   where
-    readF valueSources (Controller addr) ci _ = do
+    readF valueSources contr ci _ = do
+        let addr = getPhysicalAddress contr
         let mbVs = valueSources ^. at (addr, ci)
         assert (isJust mbVs) "Component not found" (addr, ci)
         parVal <- readValueSource (fromJust mbVs)

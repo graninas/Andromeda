@@ -18,7 +18,7 @@ import Data.List (nub, sort)
 import Prelude hiding (read)
 
 newtype InterpreterSt = InterpreterSt
-    { _hardwareHandle :: HardwareHandle }
+    { _hardwareHandle :: SimHardwareHandle }
 
 newtype SimNetworkBridge a = SimNetworkBridge
     { runSimNetworkBridge :: (StateT InterpreterSt IO a) }
@@ -51,7 +51,7 @@ readTemperatureSensor (addr, compIdx) = evalScript . controllerScript $ do
 readSensorTimes :: Int -> ComponentInstanceIndex -> ControlProgram [Measurement Kelvin]
 readSensorTimes n = sequence . replicate n . readTemperatureSensor
 
-runControlProgram :: ControlProgram [Measurement Kelvin] -> HardwareHandle -> IO [Measurement Kelvin]
+runControlProgram :: ControlProgram [Measurement Kelvin] -> SimHardwareHandle -> IO [Measurement Kelvin]
 runControlProgram prog handle = result
   where
       ev :: SimNetworkBridge  [Measurement Kelvin]

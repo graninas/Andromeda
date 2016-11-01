@@ -12,7 +12,7 @@ data In = Initialize
         | GetHardwareHandle
 data Out = Ok
          | OutValueSource ValueSource
-         | OutHardwareHandle HardwareHandle
+         | OutHardwareHandle SimHardwareHandle
 
 instance Eq Out where
     Ok == Ok = True

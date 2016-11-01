@@ -22,6 +22,9 @@ newtype Controller = Controller BS.ByteString
   deriving (Show, Read, Eq)
 type CommandResult = Either String String
 
+instance ControllerLike Controller where
+    getPhysicalAddress (Controller addr) = addr
+
 -- TODO: rework ComponentIndex, ValueSource and relations with HDL.
 -- TODO: Parameter seems redundant because component index is related to the concrete sensor,
 -- thus the information about measurement type is already there.

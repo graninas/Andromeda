@@ -42,22 +42,22 @@ setGen1Act idx = SimAction $ setValueGenerator idx floatIncrementGen
 setGen2Act idx = SimAction $ setValueGenerator idx floatDecrementGen
 
 data SimulatorRuntime = SimulatorRuntime
-    { simulatorHandle :: MVar SimulatorHandle
+    { simulatorSimHandle :: MVar SimulationHandle
     , simulatorPipe :: SimulatorPipe
     , simulatorModel :: SimulationModel   
     }
 
-runSimulation (SimulatorRuntime hVar pipe simModel) = do
+runSimulation (SimulatorRuntime handleVar pipe simModel) = do
     h <- startSimulation pipe process simModel
     r1 <- sendRequest pipe (setGen1Act boostersNozzle1T)
     r2 <- sendRequest pipe (setGen2Act boostersNozzle2T)
     let isOk = L.nub [r1, r2] == [Ok]
-    if isOk then putMVar hVar h >> print "Simulation started."
+    if isOk then putMVar handleVar h >> print "Simulation started."
             else print "Simulation failed."
     return isOk
 
-terminateSimulation (SimulatorRuntime hVar pipe simModel) = do
-    h <- takeMVar hVar
+terminateSimulation (SimulatorRuntime handleVar pipe simModel) = do
+    h <- takeMVar handleVar
     stopSimulation h
     print "Simulation stopped."
 
@@ -67,6 +67,6 @@ makeSimulatorRuntime = do
     h <- newEmptyMVar
     return $ SimulatorRuntime h pipe simModel
     
-getDevices (SimulatorRuntime hVar pipe simModel) = do
+getDevices (SimulatorRuntime handleVar pipe simModel) = do
     ds <- sendRequest pipe GetDevices
     return $ outDevices ds

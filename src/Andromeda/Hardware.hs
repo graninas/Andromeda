@@ -6,6 +6,7 @@ module Andromeda.Hardware
     , module Andromeda.Hardware.Device
     , module Andromeda.Hardware.Runtime
     , module Andromeda.Hardware.Types
+    , module Andromeda.Hardware.Handle
     ) where
 
 import Andromeda.Hardware.HDL
@@ -15,3 +16,4 @@ import Andromeda.Hardware.Description
 import Andromeda.Hardware.Device
 import Andromeda.Hardware.Runtime
 import Andromeda.Hardware.Types
+import Andromeda.Hardware.Handle
