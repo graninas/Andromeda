@@ -21,6 +21,7 @@ import Control.Monad.IO.Class (liftIO)
 import Control.Monad
 import Control.Concurrent
 import Control.Concurrent.STM
+import Control.Concurrent.MVar
 import Control.Lens
 import Data.Maybe
 import Data.Traversable as T (mapM)
@@ -31,13 +32,6 @@ data SimulationHandle = SimulationHandle
     , _shHandle :: ThreadId
     , _shSensorsHandles :: SensorsHandles
     }
-
-workerThreadsDelay = 10 -- ms
-
-waitProducing prodTMvar = do
-    prod <- takeTMVar prodTMvar
-    putTMVar prodTMvar prod
-    return prod
 
 generateValue NoGenerator vs = vs
 generateValue (StepGenerator f) vs = f vs
@@ -50,12 +44,13 @@ processValueSource True vsTVar vgTVar = do
     writeTVar vsTVar vg'
 
 -- TODO: fork threads when startSimulation is called.
-sensorWorker sn@(SensorNode vsTVar vgTVar prodTMvar) = do
+sensorWorker sn@(SensorNode vsTVar vgTVar prodTVar) = do
     liftIO $ atomically $ do
-        prod <- waitProducing prodTMvar
+        prod <- readTVar prodTVar
+        when (not prod) retry
         processValueSource prod vsTVar vgTVar
-    threadDelay workerThreadsDelay
-
+    threadDelay (1000 * 10) -- 10 ms
+    
 forkSensorWorker :: SensorNode -> IO ThreadId
 forkSensorWorker node = forkIO $ forever $ sensorWorker node
 

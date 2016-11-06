@@ -39,13 +39,13 @@ setValueGenerator idx g = do
     let setValueGen tv g = liftIO $ atomically $ writeTVar tv g
     setValueGen (sensor ^. valueGenerator) g
 
-setEnabled tmv = liftIO $ atomically $ putTMVar tmv True
+setEnabled tvProduce = liftIO $ atomically $ writeTVar tvProduce True
 
 runNetwork :: SimState ()
 runNetwork = do
     m <- use $ sensorsModel
-    let tmvs = m ^.. traverse . producing
-    mapM_ setEnabled tmvs
+    let tvs = m ^.. traverse . producing
+    mapM_ setEnabled tvs
 
 getValueSource :: ComponentInstanceIndex -> SimState ValueSource
 getValueSource idx = do

@@ -13,6 +13,7 @@ import qualified Data.Map as M
 import qualified Control.Monad.Trans.State as S
 import Control.Monad.IO.Class (liftIO)
 import Control.Concurrent.STM
+import Control.Concurrent.MVar
 import Control.Lens
 
 data ValueGenerator = NoGenerator
@@ -25,7 +26,7 @@ type ValueSource = TVar Par
 data SensorNode = SensorNode
     { _valueSource :: ValueSource
     , _valueGenerator :: TVar ValueGenerator
-    , _producing :: TMVar Bool
+    , _producing :: TVar Bool
     }
 
 type ComponentInstanceIndex = (PhysicalAddress, ComponentIndex)

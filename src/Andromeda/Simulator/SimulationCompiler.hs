@@ -51,8 +51,8 @@ assertNoController idx = do
 mkDefaultSensorNode p = do
     tvP <- liftIO $ newTVarIO p
     tvG <- liftIO $ newTVarIO noGenerator
-    tmvProd <- liftIO $ newEmptyTMVarIO
-    return $ SensorNode tvP tvG tmvProd
+    tvProd <- liftIO $ newTVarIO False
+    return $ SensorNode tvP tvG tvProd
     
 mkDefaultControllerNode = return ControllerNode
 
@@ -60,11 +60,6 @@ debugPrint v = do
     dp <- use debugPrintEnabled
     if dp then liftIO $ print v
           else return ()
-
-waitProducing prodTMvar = do
-    prod <- takeTMVar prodTMvar
-    putTMVar prodTMvar prod
-    return prod
 
 generateValue NoGenerator vs = vs
 generateValue (StepGenerator f) vs = f vs
