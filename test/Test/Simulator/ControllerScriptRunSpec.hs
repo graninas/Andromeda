@@ -61,7 +61,7 @@ runControlProgram prog handle = result
     ev = interpretControlProgram prog
     result = S.evalStateT (runSimNetworkBridge ev) (InterpreterSt handle)
 
-spec = describe "Simulation test" $
+spec = describe "Controller script run tests" $
   it "Controller script evaluation should return values."
     pending
     -- (pipe, simHandle) <- makeRunningSimulation

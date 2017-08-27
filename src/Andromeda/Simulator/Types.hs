@@ -72,6 +72,12 @@ instance Eq Out where
     Ok == Ok = True
     _ == _ = False
 
+instance Show Out where
+  show Ok = "Ok"
+  show (OutValueSource _) = "OutValueSource"
+  show (OutDevices _) = "OutDevices"
+  show (OutHardwareHandle _) = "OutHardwareHandle"
+
 data SimulatorRuntime = SimulatorRuntime
   { simulatorSimHandle :: MVar SimulationHandle
   , simulatorPipe :: SimulatorPipe
