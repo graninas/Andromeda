@@ -10,8 +10,9 @@ import Control.Concurrent.STM
 import Control.Concurrent.MVar
 import Control.Lens
 
+import Control.Service.Remote
+
 import Andromeda.Types.Hardware
-import Andromeda.Runtime.Hardware.Handle
 
 data ValueGenerator
   = NoGenerator
@@ -40,13 +41,39 @@ data SimulationModel = SimulationModel
   }
 
 type SimState = S.StateT SimulationModel IO
-type Process req resp = req -> SimState resp
+type SimulatorProcess = In -> SimState Out
 
 type SensorsHandles = M.Map ComponentInstanceIndex ThreadId
 data SimulationHandle = SimulationHandle
   { _shModel :: SimulationModel
   , _shHandle :: ThreadId
   , _shSensorsHandles :: SensorsHandles
+  }
+
+type SimulatorPipe = Pipe In Out
+
+-- Can type families be used here?
+
+data In
+  = SimAction (SimState ())
+  | GetDevices
+  | GetValueSource ComponentInstanceIndex
+  | Start ComponentInstanceIndex
+  | Stop ComponentInstanceIndex
+
+data Out
+  = Ok
+  | OutValueSource ValueSource
+  | OutDevices { outDevices :: [Device] }
+
+instance Eq Out where
+    Ok == Ok = True
+    _ == _ = False
+
+data SimulatorRuntime = SimulatorRuntime
+  { simulatorSimHandle :: MVar SimulationHandle
+  , simulatorPipe :: SimulatorPipe
+  , simulatorModel :: SimulationModel
   }
 
 makeLenses ''SensorNode

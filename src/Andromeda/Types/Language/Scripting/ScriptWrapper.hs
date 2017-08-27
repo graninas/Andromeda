@@ -11,11 +11,11 @@ data ScriptWrapper b
   | ComputationWrapper (ComputationScript b)
   | InfrastructureWrapper (InfrastructureScript b)
 
-infrastructureWrapper :: InfrastructureWrapper b -> ScriptWrapper b
+infrastructureWrapper :: InfrastructureScript b -> ScriptWrapper b
 infrastructureWrapper = InfrastructureWrapper
 
-controllerWrapper :: ControllerWrapper b -> ScriptWrapper b
+controllerWrapper :: ControllerScript b -> ScriptWrapper b
 controllerWrapper = ControllerWrapper
 
-computationWrapper :: ComputationWrapper b -> ScriptWrapper b
+computationWrapper :: ComputationScript b -> ScriptWrapper b
 computationWrapper = ComputationWrapper

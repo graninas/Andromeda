@@ -15,9 +15,8 @@ import Data.Maybe
 import Andromeda.Types.Common.Value
 import Andromeda.Types.Hardware
 import Andromeda.Types.Physics
-import Andromeda.Utils.Assert
-import Andromeda.Runtime.Hardware.Handle
 import Andromeda.Simulator.Types
+import Andromeda.Utils.Assert
 
 -- TODO: static type checking.
 fUpGen   (Par (FloatValue v) t) = Par (FloatValue (v + 1.0)) t

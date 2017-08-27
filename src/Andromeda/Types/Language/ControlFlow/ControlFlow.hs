@@ -13,5 +13,5 @@ import Control.Monad.Free
 
 type FlowArr b c = ArrEffFree Control b c
 
-evalScriptA :: FlowArr (Script b) b
+evalScriptA :: FlowArr (ScriptWrapper b) b
 evalScriptA = mArr evalScript

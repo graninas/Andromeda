@@ -59,15 +59,6 @@ debugPrint v = do
   dp <- use debugPrintEnabled
   when dp $ liftIO $ print v
 
-generateValue NoGenerator vs = vs
-generateValue (StepGenerator f) vs = f vs
-
-processValueSource False _ _ = return ()
-processValueSource True vsTVar vgTVar = do
-  vs <- readTVar vsTVar
-  vg <- readTVar vgTVar
-  let vg' = generateValue vg vs
-  writeTVar vsTVar vg'
 
 instance HdlInterpreter SimCompilerState where
   onSensorDef compDef compIdx par = do

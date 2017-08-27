@@ -13,6 +13,7 @@ import Data.Maybe
 import Andromeda.Types.Language.Scripting as LC hiding (read)
 import qualified Andromeda.Types.Language.Scripting as LC (read)
 import Andromeda.Language.LogicControl.AST
+import Andromeda.Types.Hardware
 
 type Arity = Int
 data Constr where
@@ -43,7 +44,7 @@ data ScriptResolved where
   ContrScriptResolved :: ControllerScript () -> ScriptResolved
 
 type Table = (String, M.Map String String)
-type ScriptsTable = M.Map IdName (Script ())
+type ScriptsTable = M.Map IdName (ScriptWrapper ())
 
 data Tables = Tables
   { _constants :: Table

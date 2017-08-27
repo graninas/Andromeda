@@ -1,11 +1,6 @@
-module ViewModels
-    ( module ViewModels.DeviceComponentViewModel
-    , module ViewModels.DeviceViewModel
-    , module ViewModels.WorkspaceViewModel
-    , module ViewModels.ShellViewModel
-    ) where
-    
-import ViewModels.DeviceComponentViewModel
-import ViewModels.DeviceViewModel
-import ViewModels.WorkspaceViewModel
-import ViewModels.ShellViewModel
+module ViewModels ( module X ) where
+
+import ViewModels.DeviceComponentViewModel as X
+import ViewModels.DeviceViewModel as X
+import ViewModels.WorkspaceViewModel as X
+import ViewModels.ShellViewModel as X

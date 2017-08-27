@@ -26,5 +26,5 @@ interpretControlProgram (F.Free (EvalScript scr next)) = do
   r <- onEvalScript scr
   interpretControlProgram $ next r
 
-evalScript :: Script a -> ControlProgram a
+evalScript :: ScriptWrapper a -> ControlProgram a
 evalScript scr = F.liftF (EvalScript scr id)

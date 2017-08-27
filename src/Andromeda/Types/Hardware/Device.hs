@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
-module Test.Runtime.Hardware.Device where
+module Andromeda.Types.Hardware.Device where
 
 import Control.Monad.Free
 import Control.Monad.State
@@ -12,7 +12,9 @@ import Data.Typeable
 import qualified Data.Map as M
 import qualified Data.ByteString.Char8 as BS
 
-import Andromeda.Types.Hardware
+import Andromeda.Types.Hardware.Types
+import Andromeda.Types.Hardware.Component
+import Andromeda.Types.Hardware.Parameter
 import Andromeda.Types.Language.Hardware
 import Andromeda.Types.Physics
 

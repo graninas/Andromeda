@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Assets.SpaceshipSample where
 
+import Andromeda.Types.Hardware
 import Andromeda.Types.Language.Hardware
 
 aaaManufacturer = "AAA Inc."
@@ -56,3 +57,8 @@ networkDef = do
     linkedDevice iBoosters iBoostersTU
     iLogicControl <- logicControl "08:02" "main logic control"
     link iLogicControl iBoostersTU
+
+-- dummy
+getDeviceDefs =
+    [ makeDevice boostersDef "boosters"
+    , makeDevice rotaryEngineDef "rotary engine" ]

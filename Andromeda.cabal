@@ -17,6 +17,50 @@ library
   hs-source-dirs:      src,
                        lib
 
+  exposed-modules:
+      Andromeda.Language.LogicControl
+    , Andromeda.Language.LogicControl.AST
+    , Andromeda.Language.LogicControl.Interpreter
+    , Andromeda.Language.LogicControl.Parser
+    , Andromeda.Language.LogicControl.Translator
+
+    , Andromeda.Simulator
+    , Andromeda.Simulator.Internal.SimulationCompiler
+    , Andromeda.Simulator.Types
+    , Andromeda.Simulator.Actions
+    , Andromeda.Simulator.Runtime
+
+    , Andromeda.Types.Common.Guid
+    , Andromeda.Types.Common.Value
+
+    , Andromeda.Types.Hardware
+    , Andromeda.Types.Hardware.Types
+    , Andromeda.Types.Hardware.Component
+    , Andromeda.Types.Hardware.Device
+    , Andromeda.Types.Hardware.Handle
+    , Andromeda.Types.Hardware.Parameter
+
+    , Andromeda.Types.Language.ControlFlow
+    , Andromeda.Types.Language.ControlFlow.ControlFlow
+
+    , Andromeda.Types.Language.Hardware
+    , Andromeda.Types.Language.Hardware.HDL
+    , Andromeda.Types.Language.Hardware.HNDL
+
+    , Andromeda.Types.Language.Scripting
+    , Andromeda.Types.Language.Scripting.ComputationScript
+    , Andromeda.Types.Language.Scripting.ControllerScript
+    , Andromeda.Types.Language.Scripting.InfrastructureScript
+    , Andromeda.Types.Language.Scripting.ScriptWrapper
+    , Andromeda.Types.Language.Scripting.ControlProgram
+
+    , Andromeda.Types.Physics
+    , Andromeda.Types.Physics.Measurement
+    , Andromeda.Types.Physics.Temperature
+
+    , Andromeda.Utils.Assert
+    , Andromeda.Utils.Parsing
+
   build-depends:       base >= 4.7 && < 5,
                        vector,
                        containers,
@@ -43,7 +87,6 @@ executable Andromeda-exe
                      , directory
                      , text
   other-modules:      Assets.SpaceshipSample
-                    , SimulatorRuntime
                     , ViewModels
                     , ViewModels.DeviceComponentViewModel
                     , ViewModels.DeviceViewModel
