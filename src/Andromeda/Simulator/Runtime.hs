@@ -24,7 +24,7 @@ import Andromeda.Types.Hardware
 process :: SimulatorProcess
 process (SimAction act) = act >> return Ok
 -- process GetDevices = OutDevices <$> getDeviceDefs
--- process GetHardwareHandle = OutHardwareHandle <$> getHardwareHandle
+process GetHardwareHandle = OutHardwareHandle <$> getHardwareHandle
 process (GetValueSource idx) = OutValueSource <$> getValueSource idx
 process _ = return Ok   -- TODO
 
@@ -79,17 +79,6 @@ stopSimulation (SimulationHandle simModel simHandle sensorsHandles) = do
   stopSensorsSimulation sensorsHandles
   killThread simHandle
 
--- TODO
-runSimulation (SimulatorRuntime handleVar pipe simModel) = do
-  h <- startSimulation pipe process simModel
-  -- r1 <- sendRequest pipe (setGen1Act boostersNozzle1T)
-  -- r2 <- sendRequest pipe (setGen2Act boostersNozzle2T)
-  -- let isOk = L.nub [r1, r2] == [Ok]
-  -- if isOk then putMVar handleVar h >> print "Simulation started."
-  --         else print "Simulation failed."
-  -- return isOk
-  return True
-
 terminateSimulation (SimulatorRuntime handleVar pipe simModel) = do
   h <- takeMVar handleVar
   stopSimulation h
@@ -104,3 +93,9 @@ makeSimulatorRuntime networkDef = do
 getDevices (SimulatorRuntime handleVar pipe simModel) = do
   ds <- sendRequest pipe GetDevices
   return $ outDevices ds
+
+makeRunningSimulation networkDef = do
+  simModel <- compileSimModel networkDef
+  pipe <- createPipe :: IO SimulatorPipe
+  simHandle <- startSimulation pipe process simModel
+  return (pipe, simHandle)

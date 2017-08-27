@@ -27,7 +27,6 @@ data ComposingDevice = ComposingDevice
 
 data CompilerState = CompilerState
   { _simulationModel :: SimulationModel
-  , _debugPrintEnabled :: Bool
   , _composingDevice :: ComposingDevice
   }
 
@@ -37,7 +36,7 @@ makeLenses ''CompilerState
 type SimCompilerState = S.StateT CompilerState IO
 
 emptyComposingDevice = ComposingDevice M.empty Nothing
-emptyCompilerState = CompilerState emptySimModel False emptyComposingDevice
+emptyCompilerState = CompilerState emptySimModel emptyComposingDevice
 
 assertNoSensor idx = do
   mbS <- use (composingDevice . composingSensors . at idx)
@@ -55,45 +54,31 @@ mkDefaultSensorNode p = do
 
 mkDefaultControllerNode = return ControllerNode
 
-debugPrint v = do
-  dp <- use debugPrintEnabled
-  when dp $ liftIO $ print v
-
-
 instance HdlInterpreter SimCompilerState where
   onSensorDef compDef compIdx par = do
-    debugPrint ("Compiling SensorDef", compIdx, compDef)
     assertNoSensor compIdx
     sn <- mkDefaultSensorNode par
     composingDevice . composingSensors . at compIdx %= const (Just sn)
   onControllerDef compDef compIdx = do
-    debugPrint ("Compiling ControllerDef", compIdx, compDef)
     assertNoController compIdx
     cn <- mkDefaultControllerNode
     composingDevice . composingController .= Just (compIdx, cn)
 
 instance HndlInterpreter SimCompilerState where
   onDeviceDef pa hdl d = do
-    debugPrint ("Compiling DeviceDef", pa, d)
     interpretHdl hdl
     m <- use $ composingDevice . composingSensors
     let m' = M.mapKeys (\compIdx -> (pa, compIdx)) m
     simulationModel . sensorsModel %= M.union m'
     composingDevice .= emptyComposingDevice
     return $ mkDeviceInterface pa
-  onTerminalUnitDef pa d = do
-    debugPrint ("Compiling TerminalUnitDef", pa)
-    return $ mkTerminalUnitInterface pa
-  onLogicControlDef pa d = do
-    debugPrint ("Compiling LogicControlDef", pa)
-    return $ mkInterface pa
-  onLinkedDeviceDef (DeviceInterface rdi) (TerminalUnitInterface tui) =
-    debugPrint ("Compiling LinkedDeviceDef", rdi, tui)
-  onLinkDef interf tui =
-    debugPrint "Compiling ConnectionDef"
+  onTerminalUnitDef pa d = return $ mkTerminalUnitInterface pa
+  onLogicControlDef pa d = return $ mkInterface pa
+  onLinkedDeviceDef (DeviceInterface rdi) (TerminalUnitInterface tui) = return ()
+  onLinkDef interf tui = return ()
 
 compileSimModel :: Hndl () -> IO SimulationModel
 compileSimModel hndl = do
   let compiler = interpretHndl hndl
-  (CompilerState m _ _) <- S.execStateT compiler emptyCompilerState
+  (CompilerState m _) <- S.execStateT compiler emptyCompilerState
   return m

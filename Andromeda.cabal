@@ -67,6 +67,7 @@ library
 
     , Andromeda.Utils.Assert
     , Andromeda.Utils.Parsing
+    , Andromeda.Utils.DebugPrint
 
     , Andromeda.Assets.SpaceshipSample
 

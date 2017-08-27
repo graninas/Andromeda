@@ -19,7 +19,9 @@ import Andromeda.Types.Hardware
 import Andromeda.Types.Physics
 import Andromeda.Types.Language.Scripting
 
+import Andromeda.Simulator
 import Andromeda.Assets.SpaceshipSample
+import Andromeda.Utils.DebugPrint
 
 newtype InterpreterSt = InterpreterSt
   { _hardwareHandle :: HardwareHandle
@@ -31,9 +33,6 @@ newtype SimNetworkBridge a = SimNetworkBridge
   deriving (Functor, Applicative, Monad, MonadState InterpreterSt, MonadIO)
 
 makeLenses ''InterpreterSt
-
-debugPrint :: (Show v, MonadIO m) => v -> m ()
-debugPrint = liftIO . print
 
 instance ControlProgramInterpreter SimNetworkBridge where
   onEvalScript (ControllerScriptWrapper scr) = interpretControllerScript scr
@@ -62,21 +61,20 @@ runControlProgram prog handle = result
     result = S.evalStateT (runSimNetworkBridge ev) (InterpreterSt handle)
 
 spec = describe "Controller script run tests" $
-  it "Controller script evaluation should return values."
-    pending
-    -- (pipe, simHandle) <- makeRunningSimulation
-    -- r1 <- sendRequest pipe (setGen1Act boostersNozzle1T)
-    -- r3 <- sendRequest pipe runNetworkAct
-    --
-    -- let program1 = readSensorTimes 1 boostersNozzle1T
-    -- let program2 = readSensorTimes 2 boostersNozzle1T
-    --
-    -- (OutHardwareHandle hHandle) <- sendRequest pipe GetHardwareHandle
-    -- [val1] <- runControlProgram program1 hHandle
-    -- [val2, val3] <- runControlProgram program2 hHandle
-    --
-    -- stopSimulation simHandle
-    --
-    -- val1 >= toKelvin 0.0 `shouldBe` True
-    -- val2 >= val1 `shouldBe` True
-    -- val3 >= val2 `shouldBe` True
+  it "Controller script evaluation should return values." $ do
+    (pipe, simHandle) <- makeRunningSimulation networkDef
+    r1 <- sendRequest pipe (setGen1Act boostersNozzle1T)
+    r3 <- sendRequest pipe runNetworkAct
+
+    let program1 = readSensorTimes 1 boostersNozzle1T
+    let program2 = readSensorTimes 2 boostersNozzle1T
+
+    OutHardwareHandle hHandle <- sendRequest pipe GetHardwareHandle
+    [val1] <- runControlProgram program1 hHandle
+    [val2, val3] <- runControlProgram program2 hHandle
+
+    stopSimulation simHandle
+
+    val1 >= toKelvin 0.0 `shouldBe` True
+    val2 >= val1 `shouldBe` True
+    val3 >= val2 `shouldBe` True

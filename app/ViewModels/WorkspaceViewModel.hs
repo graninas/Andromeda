@@ -8,8 +8,11 @@ import qualified Data.Text.Encoding as T
 import qualified Data.Text as T
 import Data.Typeable
 import Data.Proxy
+import qualified Data.List as L (nub)
 import Control.Concurrent.MVar
 import Control.Monad (when)
+
+import Lib
 
 import ViewModels.DeviceViewModel
 import Andromeda.Simulator
@@ -31,6 +34,15 @@ instance DefaultClass WorkspaceVM where
     where
         getDevices' :: ObjRef WorkspaceVM -> IO [ObjRef DeviceVM]
         getDevices' = readMVar . _workspaceSimDevices . fromObjRef
+
+runSimulation (SimulatorRuntime handleVar pipe simModel) = do
+  h <- startSimulation pipe process simModel
+  r1 <- sendRequest pipe (setGen1Act boostersNozzle1T)
+  r2 <- sendRequest pipe (setGen2Act boostersNozzle2T)
+  let isOk = L.nub [r1, r2] == [Ok]
+  if isOk then putMVar handleVar h >> print "Simulation started."
+          else print "Simulation failed."
+  return isOk
 
 toggleSimulation :: ObjRef WorkspaceVM -> Bool -> IO ()
 toggleSimulation objRef True = do

@@ -11,14 +11,8 @@ import Test.Common
 import Andromeda.Simulator
 import Andromeda.Assets.SpaceshipSample
 
-makeRunningSimulation = do
-  simModel <- compileSimModel networkDef
-  pipe <- createPipe :: IO SimulatorPipe
-  simHandle <- startSimulation pipe process simModel
-  return (pipe, simHandle)
-
 simulateSingleReq req = do
-  (pipe, simHandle) <- makeRunningSimulation
+  (pipe, simHandle) <- makeRunningSimulation networkDef
   resp <- sendRequest pipe req
   stopSimulation simHandle
   return resp
@@ -32,7 +26,7 @@ spec = describe "Simulation tests" $ do
     simulateSingleReq (setGen1Act boostersNozzle1T) `shouldReturn` Ok
 
   it "Continuous simulation of sensor should return values." $ do
-    (pipe, simHandle) <- makeRunningSimulation
+    (pipe, simHandle) <- makeRunningSimulation networkDef
     r1 <- sendRequest pipe (setGen1Act boostersNozzle1T)
     r2 <- sendRequest pipe runNetworkAct
     OutValueSource vs <- sendRequest pipe (GetValueSource boostersNozzle1T)
@@ -43,7 +37,7 @@ spec = describe "Simulation tests" $ do
     length vals `shouldBe` 10
 
   it "Continuous simulation of several sensors should return values." $ do
-    (pipe, simHandle) <- makeRunningSimulation
+    (pipe, simHandle) <- makeRunningSimulation networkDef
     r1 <- sendRequest pipe (setGen1Act boostersNozzle1T)
     r2 <- sendRequest pipe (setGen2Act boostersNozzle2T)
     r3 <- sendRequest pipe runNetworkAct

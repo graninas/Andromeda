@@ -42,4 +42,3 @@ isBkEv _ = False
 spec = describe "Graph transitions test." $
   it "Test graph transitions." $ do
     runGraph (GraphRuntime runLang isBkEv) travel1Graph
-    pending
