@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Assets.SpaceshipSample where
+module Andromeda.Assets.SpaceshipSample where
 
 import Andromeda.Types.Hardware
 import Andromeda.Types.Language.Hardware

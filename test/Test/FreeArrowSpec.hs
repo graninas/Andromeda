@@ -8,9 +8,10 @@ import Control.Monad.Trans.Free
 import qualified Control.Monad.Free as F
 import Test.Hspec
 
-import Test.Common
 import Lib
+import Test.Common
 
+import Andromeda.Assets.SpaceshipSample
 import Andromeda.Types.Hardware
 import Andromeda.Types.Physics
 import Andromeda.Types.Language.Scripting

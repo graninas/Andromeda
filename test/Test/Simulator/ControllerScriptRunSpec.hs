@@ -19,6 +19,8 @@ import Andromeda.Types.Hardware
 import Andromeda.Types.Physics
 import Andromeda.Types.Language.Scripting
 
+import Andromeda.Assets.SpaceshipSample
+
 newtype InterpreterSt = InterpreterSt
   { _hardwareHandle :: HardwareHandle
   }

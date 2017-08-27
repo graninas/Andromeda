@@ -13,7 +13,7 @@ import Control.Monad (when)
 
 import ViewModels.DeviceViewModel
 import Andromeda.Simulator
-import Assets.SpaceshipSample
+import Andromeda.Assets.SpaceshipSample
 
 data WorkspaceVM = SimulatorWorkspaceVM
   { _workspaceSimulatorRuntime :: SimulatorRuntime

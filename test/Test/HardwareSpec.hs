@@ -4,6 +4,7 @@ module Test.HardwareSpec where
 import Test.Hspec
 
 import Test.Common
+import Andromeda.Assets.SpaceshipSample
 
 import Andromeda.Types.Hardware
 import Andromeda.Types.Physics
