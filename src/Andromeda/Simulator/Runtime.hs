@@ -24,6 +24,7 @@ import Andromeda.Types.Hardware
 process :: SimulatorProcess
 process (SimAction act) = act >> return Ok
 -- process GetDevices = OutDevices <$> getDeviceDefs
+-- process GetHardwareHandle = OutHardwareHandle <$> getHardwareHandle
 process (GetValueSource idx) = OutValueSource <$> getValueSource idx
 process _ = return Ok   -- TODO
 

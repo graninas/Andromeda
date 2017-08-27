@@ -4,26 +4,24 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
-module TestCommon where
-
-import Andromeda.Common
-import Andromeda.LogicControl
-import Andromeda.Calculations
-import Andromeda.Hardware.Types
-import Andromeda.Hardware.Description
-import Andromeda.Hardware.Parameter
-import Andromeda.Hardware.HDL
-import Andromeda.Hardware.HNDL
+module Test.Common where
 
 import Prelude hiding (read)
+import Control.Monad
 import Control.Monad.IO.Class (liftIO, MonadIO(..))
 import Control.Monad.Free
 import Control.Monad.Trans.State as S
 import Control.Monad.State.Class (MonadState(..))
 import Control.Lens
 
+import Andromeda.Types.Physics
+import Andromeda.Types.Hardware
+import Andromeda.Types.Language.Hardware
+import Andromeda.Types.Language.Scripting
+import Andromeda.Types.Common.Value
+
 newtype TestInterpreterSt = TestInterpreterSt
-    { _debugPrintEnabled :: Bool }
+  { _debugPrintEnabled :: Bool }
 
 type TestCPInterpreter = StateT TestInterpreterSt IO
 
@@ -31,49 +29,48 @@ makeLenses ''TestInterpreterSt
 
 debugPrint_ :: (Show v, MonadState TestInterpreterSt m, MonadIO m) => v -> m ()
 debugPrint_ v = do
-    dp <- use debugPrintEnabled
-    if dp then liftIO $ print v
-          else return ()
+  dp <- use debugPrintEnabled
+  when dp $ liftIO $ print v
 
 instance ControlProgramInterpreter TestCPInterpreter where
-    onEvalScript (ControllerScript scr)     = interpretControllerScript scr
-    onEvalScript (InfrastructureScript scr) = interpretInfrastructureScript scr
+  onEvalScript (ControllerScriptWrapper scr)   = interpretControllerScript scr
+  onEvalScript (InfrastructureScriptWrapper scr) = interpretInfrastructureScript scr
 
 instance ControllerScriptInterpreter TestCPInterpreter where
-    onGet c p     = debugPrint_ ("Get", c, p)      >> return (StringValue "ggg")
-    onSet c p v   = debugPrint_ ("Set", c, p, v)
-    onRead c ci p = debugPrint_ ("Read", c, ci, p) >> return (Measurement . FloatValue $ 33.3)
-    onRun c cmd   = debugPrint_ ("Run", c, cmd)    >> return (Right "OK.")
-    
+  onGet c p   = debugPrint_ ("Get", c, p)    >> return (StringValue "ggg")
+  onSet c p v   = debugPrint_ ("Set", c, p, v)
+  onRead c ci p = debugPrint_ ("Read", c, ci, p) >> return (Measurement . FloatValue $ 33.3)
+  onRun c cmd   = debugPrint_ ("Run", c, cmd)  >> return (Right "OK.")
+
 instance InfrastructureScriptInterpreter TestCPInterpreter where
-    onSendTo r v     = debugPrint_ ("SendTo", v)
-    onGetCurrentTime = debugPrint_ "GetCurrentTime" >> return 10
+  onSendTo r v   = debugPrint_ ("SendTo", v)
+  onGetCurrentTime = debugPrint_ "GetCurrentTime" >> return 10
 
 testInterpretControllerScript debugPrint script
-    = runStateT (interpretControllerScript script) (TestInterpreterSt debugPrint)
-    
+  = runStateT (interpretControllerScript script) (TestInterpreterSt debugPrint)
+
 testInterpretInfrastructureScript debugPrint script
-    = runStateT (interpretInfrastructureScript script) (TestInterpreterSt debugPrint)
-    
+  = runStateT (interpretInfrastructureScript script) (TestInterpreterSt debugPrint)
+
 testInterpretControlProgram debugPrint script
-    = runStateT (interpretControlProgram script) (TestInterpreterSt debugPrint)
+  = runStateT (interpretControlProgram script) (TestInterpreterSt debugPrint)
 
 start   = Command "start"
-stop    = Command "stop"
+stop  = Command "stop"
 power _ = Command "power"
 
 logReceiver :: Receiver
-logReceiver = \v -> print v
+logReceiver = print
 
 alarmReceiver :: Receiver
-alarmReceiver = \v -> print ("WARNING!", v)
+alarmReceiver v = print ("WARNING!", v)
 
 readTemperature :: Controller -> ComponentIndex -> ControllerScript (Measurement Kelvin)
 readTemperature controller idx = read controller idx temperature
 
 readPressure :: Controller -> ComponentIndex -> ControllerScript (Measurement Pascal)
 readPressure controller idx = read controller idx pressure
-    
+
 aaaManufacturer = "AAA Inc."
 guid1 = "3539390d-f189-4434-bd9e-d39e494a869a"
 guid2 = "c80a1ba3-1e7a-4af9-a10b-2313cc10f9e4"
@@ -113,34 +110,34 @@ boostersController = (boostersAddr, boostersControllerCompIdx)
 
 boostersDef :: Hdl ()
 boostersDef = do
-    sensor aaa_t_25 nozzle1TCompIdx temperaturePar
-    sensor aaa_t_25 nozzle2TCompIdx temperaturePar
-    sensor aaa_p_02 nozzle1PCompIdx pressurePar
-    sensor aaa_p_02 nozzle2PCompIdx pressurePar
-    controller aaa_controller_01 boostersControllerCompIdx
+  sensor aaa_t_25 nozzle1TCompIdx temperaturePar
+  sensor aaa_t_25 nozzle2TCompIdx temperaturePar
+  sensor aaa_p_02 nozzle1PCompIdx pressurePar
+  sensor aaa_p_02 nozzle2PCompIdx pressurePar
+  controller aaa_controller_01 boostersControllerCompIdx
 
 rotaryEngineDef :: Hdl ()
 rotaryEngineDef = do
-    sensor aaa_t_25 nozzleTemeratureCompIdx temperaturePar
-    sensor aaa_p_02 nozzlePressureCompIdx   pressurePar
-    controller aaa_controller_01 rotaryEngineControllerCompIdx
+  sensor aaa_t_25 nozzleTemeratureCompIdx temperaturePar
+  sensor aaa_p_02 nozzlePressureCompIdx   pressurePar
+  controller aaa_controller_01 rotaryEngineControllerCompIdx
 
 {-
-Sensors            [2t, 2p]
-            [1t, 1p]  :   [1t, 1p]
-               :      :      :
-Devices        R1     B     R2
-               :      :      :
-01             R1C    BC    R2C
-02             |      |      |
-03             RTUR1  RTUB  RTUR2 
-04              |_____|_____|
-05                    |
-06                    |
-07                    |
-08                    |
-09                    LC
-        00     01     02    03     04
+Sensors      [2t, 2p]
+      [1t, 1p]  :   [1t, 1p]
+         :    :    :
+Devices    R1   B   R2
+         :    :    :
+01       R1C  BC  R2C
+02       |    |    |
+03       RTUR1  RTUB  RTUR2
+04        |_____|_____|
+05          |
+06          |
+07          |
+08          |
+09          LC
+    00   01   02  03   04
 -}
 
 -- terminal units are computers inside network
@@ -148,22 +145,20 @@ Devices        R1     B     R2
 
 networkDef :: Hndl ()
 networkDef = do
-    iBoosters <- remoteDevice boostersAddr boostersDef "boosters"
---    iRotaryEngine1 <- remoteDevice (rotaryEngineDef rotaryEngine1ObjIdx) "left rotary engine"
---    iRotaryEngine2 <- remoteDevice (rotaryEngineDef rotaryEngine2ObjIdx) "right rotary engine"
+  iBoosters <- remoteDevice boostersAddr boostersDef "boosters"
+--  iRotaryEngine1 <- remoteDevice (rotaryEngineDef rotaryEngine1ObjIdx) "left rotary engine"
+--  iRotaryEngine2 <- remoteDevice (rotaryEngineDef rotaryEngine2ObjIdx) "right rotary engine"
 
-    iBoostersTU      <- terminalUnit boostersTUAddr "boosters terminal unit"
---    iRotaryEngine1TU <- terminalUnit "02:01" "left rotary engine terminal unit"
---    iRotaryEngine2TU <- terminalUnit "02:03" "right rotary engine terminal unit"
-    
-    linkedDevice iBoosters iBoostersTU
---    linkedDevice iRotaryEngine1 iRotaryEngine1TU
---    linkedDevice iRotaryEngine2 iRotaryEngine2TU
-    
-    iLogicControl <- logicControl "09:02" "main logic control"
-    
-    link iLogicControl iBoostersTU
---    link iLogicControl iRotaryEngine1TU
---    link iLogicControl iRotaryEngine2TU
-    
+  iBoostersTU    <- terminalUnit boostersTUAddr "boosters terminal unit"
+--  iRotaryEngine1TU <- terminalUnit "02:01" "left rotary engine terminal unit"
+--  iRotaryEngine2TU <- terminalUnit "02:03" "right rotary engine terminal unit"
 
+  linkedDevice iBoosters iBoostersTU
+--  linkedDevice iRotaryEngine1 iRotaryEngine1TU
+--  linkedDevice iRotaryEngine2 iRotaryEngine2TU
+
+  iLogicControl <- logicControl "09:02" "main logic control"
+
+  link iLogicControl iBoostersTU
+--  link iLogicControl iRotaryEngine1TU
+--  link iLogicControl iRotaryEngine2TU

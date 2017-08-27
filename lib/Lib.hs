@@ -1,9 +1,5 @@
-module Lib (
-    module Control.Arrow.ArrEff,
-    module Control.Arrow.Reactive,
-    module Control.Service.Remote
-  ) where
+module Lib ( module X ) where
 
-import Control.Arrow.ArrEff
-import Control.Arrow.Reactive
-import Control.Service.Remote
+import Control.Arrow.ArrEff as X
+import Control.Arrow.Reactive as X
+import Control.Service.Remote as X

@@ -60,11 +60,13 @@ data In
   | GetValueSource ComponentInstanceIndex
   | Start ComponentInstanceIndex
   | Stop ComponentInstanceIndex
+  | GetHardwareHandle
 
 data Out
   = Ok
   | OutValueSource ValueSource
   | OutDevices { outDevices :: [Device] }
+  | OutHardwareHandle HardwareHandle
 
 instance Eq Out where
     Ok == Ok = True

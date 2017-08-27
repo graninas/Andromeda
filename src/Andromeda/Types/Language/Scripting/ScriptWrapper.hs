@@ -7,15 +7,15 @@ import Andromeda.Types.Language.Scripting.InfrastructureScript
 
 -- TODO: ScriptWrapper can be replaced by existential types / rankN types.
 data ScriptWrapper b
-  = ControllerWrapper (ControllerScript b)
-  | ComputationWrapper (ComputationScript b)
-  | InfrastructureWrapper (InfrastructureScript b)
+  = ControllerScriptWrapper (ControllerScript b)
+  | ComputationScriptWrapper (ComputationScript b)
+  | InfrastructureScriptWrapper (InfrastructureScript b)
 
-infrastructureWrapper :: InfrastructureScript b -> ScriptWrapper b
-infrastructureWrapper = InfrastructureWrapper
+controllerScriptWrapper :: ControllerScript b -> ScriptWrapper b
+controllerScriptWrapper = ControllerScriptWrapper
 
-controllerWrapper :: ControllerScript b -> ScriptWrapper b
-controllerWrapper = ControllerWrapper
+computationScriptWrapper :: ComputationScript b -> ScriptWrapper b
+computationScriptWrapper = ComputationScriptWrapper
 
-computationWrapper :: ComputationScript b -> ScriptWrapper b
-computationWrapper = ComputationWrapper
+infrastructureScriptWrapper :: InfrastructureScript b -> ScriptWrapper b
+infrastructureScriptWrapper = InfrastructureScriptWrapper
