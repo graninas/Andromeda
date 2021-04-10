@@ -9,3 +9,6 @@ dist
 .tree
 .swp
 .stack-work
+
+*.qmlc
+*.lock
