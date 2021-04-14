@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstrainedClassMethods #-}
 {-# LANGUAGE DeriveFunctor #-}
 module Andromeda.Types.Language.Hardware.HDL where
 
