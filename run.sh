@@ -1,1 +1,0 @@
-stack exec Andromeda-exe

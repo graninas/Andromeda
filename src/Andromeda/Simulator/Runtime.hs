@@ -1,101 +1,39 @@
 module Andromeda.Simulator.Runtime where
 
-import qualified Data.ByteString.Char8 as BS
-import qualified Data.Map as M
-import qualified Control.Monad.Trans.State as S
-import Control.Monad.IO.Class (liftIO)
-import Control.Monad
-import Control.Concurrent
-import Control.Concurrent.STM
+import qualified Andromeda.Hardware.Common as T
+import qualified Andromeda.Hardware.Domain as T
+import qualified Andromeda.LogicControl.Domain as T
+import qualified Andromeda.Common as T
+
+import Andromeda.Simulator.Hardware.Device
+
+import Data.IORef
 import Control.Concurrent.MVar
-import Control.Lens
-import Data.List as L (nub)
-import Data.Maybe
-import Data.Traversable as T (mapM)
+import Control.Concurrent (ThreadId)
+import qualified Data.Map as Map
 
-import Control.Service.Remote
 
-import Andromeda.Simulator.Types
-import Andromeda.Simulator.Actions
-import Andromeda.Simulator.Internal.SimulationCompiler
-import Andromeda.Types.Hardware
+data SimulatorRuntime = SimulatorRuntime
+  { simRtControllerSimsVar :: MVar (Map.Map T.Controller ControllerSim)
+  , simRtMessagesVar       :: MVar [String]
+  , simRtErrorsVar         :: MVar [String]
+  , simSimulationsVar      :: MVar [ThreadId]
+  , simKeyValueDBVar       :: MVar (Map.Map T.Key T.Value)
+  }
 
--- TODO
-process :: SimulatorProcess
-process (SimAction act) = act >> return Ok
--- process GetDevices = OutDevices <$> getDeviceDefs
-process GetHardwareHandle = OutHardwareHandle <$> getHardwareHandle
-process (GetValueSource idx) = OutValueSource <$> getValueSource idx
-process _ = return Ok   -- TODO
 
-runNetworkAct = SimAction runNetwork
-setGen1Act idx = SimAction $ setValueGenerator idx floatIncrementGen
-setGen2Act idx = SimAction $ setValueGenerator idx floatDecrementGen
+createSimulatorRuntime :: IO SimulatorRuntime
+createSimulatorRuntime = do
+  simsVar <- newMVar Map.empty
+  msgsVar <- newMVar []
+  errsVar <- newMVar []
+  detachedSimsVar <- newMVar []
+  keyValueDBVar <- newMVar Map.empty
+  pure $ SimulatorRuntime simsVar msgsVar errsVar detachedSimsVar keyValueDBVar
 
-generateValue NoGenerator vs = vs
-generateValue (StepGenerator f) vs = f vs
 
-processValueSource False _ _ = return ()
-processValueSource True vsTVar vgTVar = do
-  vs <- readTVar vsTVar
-  vg <- readTVar vgTVar
-  let vg' = generateValue vg vs
-  writeTVar vsTVar vg'
--- TODO: fork threads when startSimulation is called.
-
-sensorWorker sn@(SensorNode vsTVar vgTVar prodTVar) = do
-  liftIO $ atomically $ do
-    prod <- readTVar prodTVar
-    unless prod retry
-    processValueSource prod vsTVar vgTVar
-  threadDelay (1000 * 10) -- 10 ms
-
-forkSensorWorker :: SensorNode -> IO ThreadId
-forkSensorWorker node = forkIO $ forever $ sensorWorker node
-
-startSensorsSimulation :: SensorsModel -> IO SensorsHandles
-startSensorsSimulation = T.mapM forkSensorWorker
-
-stopSensorWorker :: ThreadId -> IO ()
-stopSensorWorker = killThread
-
-stopSensorsSimulation :: SensorsHandles -> IO ()
-stopSensorsSimulation handles = void $ T.mapM stopSensorWorker handles
-
--- TODO: Tail recursive
-simulationWorker :: SimulatorPipe -> SimulatorProcess -> SimState ()
-simulationWorker pipe process = do
-  req <- liftIO $ getRequest pipe
-  resp <- process req
-  liftIO $ sendResponse pipe resp
-  simulationWorker pipe process
-
-startSimulation pipe process simModel = do
-  sensorsHandlers <- startSensorsSimulation (simModel ^. sensorsModel)
-  simHandle <- forkIO $ void $ S.execStateT (simulationWorker pipe process) simModel
-  return $ SimulationHandle simModel simHandle sensorsHandlers
-
-stopSimulation (SimulationHandle simModel simHandle sensorsHandles) = do
-  stopSensorsSimulation sensorsHandles
-  killThread simHandle
-
-terminateSimulation (SimulatorRuntime handleVar pipe simModel) = do
-  h <- takeMVar handleVar
-  stopSimulation h
-  print "Simulation stopped."
-
-makeSimulatorRuntime networkDef = do
-  simModel <- compileSimModel networkDef
-  pipe <- createPipe :: IO SimulatorPipe
-  h <- newEmptyMVar
-  return $ SimulatorRuntime h pipe simModel
-
-getDevices (SimulatorRuntime handleVar pipe simModel) = do
-  ds <- sendRequest pipe GetDevices
-  return $ outDevices ds
-
-makeRunningSimulation networkDef = do
-  simModel <- compileSimModel networkDef
-  pipe <- createPipe :: IO SimulatorPipe
-  simHandle <- startSimulation pipe process simModel
-  return (pipe, simHandle)
+reportError :: SimulatorRuntime -> String -> IO ()
+reportError SimulatorRuntime{simRtErrorsVar} err = do
+  errs <- takeMVar simRtErrorsVar
+  let errs' = err : errs
+  putMVar simRtErrorsVar errs'
